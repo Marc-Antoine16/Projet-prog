@@ -6,6 +6,7 @@ from watchlist import Watchlist
 from graphe import GraphPage
 
 
+
 APP_GEOMETRY = "800x600"
 APP_TITLE = "Paper Trading"
 
@@ -24,8 +25,6 @@ class MainApp(ctk.CTk):
         self.current_page = None
         self.show_watchlist()
 
-
-       
 
     def clear_page(self):
         if self.current_page is not None:
