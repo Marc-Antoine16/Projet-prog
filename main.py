@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from watchlist import Watchlist
+from graphe import GraphPage
 
 
 APP_GEOMETRY = "800x600"
@@ -19,10 +20,25 @@ class MainApp(ctk.CTk):
             "NVDA" : yf.download("NVDA", start="2024-01-01", end="2025-10-11", interval="1d")
         }
         print(self.stocks["TSLA"].head())
+        
+        self.current_page = None
         self.show_watchlist()
 
+
+       
+
+    def clear_page(self):
+        if self.current_page is not None:
+            self.current_page.destroy()
+
+    def show_graph(self):
+        self.clear_page()
+        self.current_page = GraphPage(master = self, stocks=self.stocks)
+
+    
     def show_watchlist(self):
-        self.watchlist = Watchlist(master=self,stocks=self.stocks)
+        self.clear_page()
+        self.current_page = Watchlist(master=self,stocks=self.stocks, go_to_graph=self.show_graph)
     
 if __name__ == "__main__":
     app = MainApp() 
