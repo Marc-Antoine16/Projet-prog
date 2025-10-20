@@ -3,6 +3,8 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from watchlist import Watchlist
+from graphe import Graph
+
 
 
 APP_GEOMETRY = "800x600"
@@ -18,12 +20,15 @@ class MainApp(ctk.CTk):
             "AAPL" : yf.download("AAPL", start="2024-01-01", end="2025-10-11", interval="1d"),
             "NVDA" : yf.download("NVDA", start="2024-01-01", end="2025-10-11", interval="1d")
         }
+        self.protocol("WM_DELETE_WINDOW", self.quit)
         self.show_watchlist()
-        print(self.stocks)
-    def show_watchlist(self):
-        self.watchlist = Watchlist(master=self,stocks=self.stocks)
+
+    def show_graph(self):
+        self.current_page = Graph(master = self, stocks=self.stocks)
 
     
+    def show_watchlist(self):
+        self.current_page = Watchlist(master=self,stocks=self.stocks)
     
 if __name__ == "__main__":
     app = MainApp() 
