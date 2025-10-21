@@ -36,6 +36,9 @@ class Watchlist(ctk.CTkFrame):
 
             self.boutonGraphe = ctk.CTkButton(self, text="Graphique", fg_color="transparent", hover_color="orange", font=("Arial", 24), command = lambda s = stock: self.on_button_click(s))
             self.boutonGraphe.grid(row=i, column=2, pady=(10,10))
+
+            self.bouton_supprime = ctk.CTkButton(self, text="Supprimer", fg_color="transparent", hover_color="red", font=("Arial", 24), command = lambda s = stock: self.supprime_stock(s))
+            self.bouton_supprime.grid(row=i, column=3, pady=(10,10))
             i += 1
 
     def clear_main_frame(self):
@@ -50,6 +53,11 @@ class Watchlist(ctk.CTkFrame):
     def on_button_click(self, name):
         self.clear_main_frame()
         self.graph = Graph(self.master, self.stocks, name)
+    
+    def supprime_stock(self, nom):
+        del self.stocks[nom]
+        self.clear_main_frame()
+        self.create_widgets()
 
     def option_changed(self, value):
         self.current_choice = value
