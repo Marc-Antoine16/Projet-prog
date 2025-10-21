@@ -33,7 +33,6 @@ class Graph(ctk.CTkFrame):
         self.watchlist_button = ctk.CTkButton(self, text="retour", fg_color = "transparent", hover_color= "light green", font=("Arial", 15, "bold"), command= self.retour)
         self.watchlist_button.grid(row=0, column=0, pady=(0,0))
 
-
     def clear_main_frame(self):
         for widget in self.winfo_children():
             widget.destroy()

@@ -13,6 +13,7 @@ APP_TITLE = "Paper Trading"
 class MainApp(ctk.CTk):
     def __init__(self):
         super().__init__()
+        ctk.set_appearance_mode("Dark")      
         self.geometry(APP_GEOMETRY)
         self.title(APP_TITLE)
         self.stocks = {
@@ -22,7 +23,6 @@ class MainApp(ctk.CTk):
         }
         self.protocol("WM_DELETE_WINDOW", self.quit)
         self.show_watchlist()
-
     def show_watchlist(self):
         self.current_page = Watchlist(master=self,stocks=self.stocks)
     
