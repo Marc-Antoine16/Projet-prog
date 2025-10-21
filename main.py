@@ -23,10 +23,6 @@ class MainApp(ctk.CTk):
         self.protocol("WM_DELETE_WINDOW", self.quit)
         self.show_watchlist()
 
-    def show_graph(self):
-        self.current_page = Graph(master = self, stocks=self.stocks)
-
-    
     def show_watchlist(self):
         self.current_page = Watchlist(master=self,stocks=self.stocks)
     
