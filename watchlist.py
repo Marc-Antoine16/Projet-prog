@@ -41,6 +41,7 @@ class Watchlist(ctk.CTkFrame):
     def clear_main_frame(self):
         for widget in self.winfo_children():
             widget.destroy()
+        self.dropdown.destroy()
         
     def onButtonClicked(self, pseudo):
         self.clear_main_frame()
