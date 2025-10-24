@@ -48,7 +48,9 @@ class Watchlist(ctk.CTkFrame):
         else:
             for widget in self.winfo_children():
                     info = widget.grid_info()
-                    if info["column"] == 1 and info["row"] != 0:
+                    col = info.get("column")
+                    row = info.get("row")
+                    if (col == 1 and row != 0) or (col == 3 and row == 0):
                         widget.destroy()
 
             i = 1
@@ -58,11 +60,15 @@ class Watchlist(ctk.CTkFrame):
 
                 i += 1   
 
+            self.date = ctk.CTkLabel(self, text=self.stocks[stock]. index[temps].date(), text_color= "light gray", font=("Arial", 24))
+            self.date.grid(row=0, column=3, padx = (0, 10), pady=(10,10))
+            
             self.boucle_id = self.after(5000, lambda: self.boucle_stock(temps + 1))
 
     def clear_main_frame(self):
         if hasattr(self, "boucle_id"):
             self.after_cancel(self.boucle_id)
+            
         for widget in self.winfo_children():
             widget.destroy()
         self.dropdown.destroy()

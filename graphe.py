@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import mplcursors
 
 
 
@@ -21,10 +22,33 @@ class Graph(ctk.CTkFrame):
         x = self.stocks[self.nom].index
         y = self.stocks[self.nom]["Close"]
 
-        plt.figure(figsize= (9,6))
-        plt.plot (x, y, label = "Prix en fonction de la journée")
-        plt.xlabel("Date")
-        plt.ylabel("Prix")
+        fig, ax = plt.subplots(figsize=(9,6))
+        line, = ax.plot(x, y, linestyle='-', color='dodgerblue')
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Prix")
+    
+        ax.set_facecolor("black")
+        ax.grid(False)
+
+        lines = []
+        for i in range(1, len(x)):
+            prev_val = float(y.iloc[i - 1])
+            curr_val = float(y.iloc[i])
+            color = "green" if curr_val > prev_val else "red"
+            l, = ax.plot(x[i - 1:i + 1], y.iloc[i - 1:i + 1], color=color, linewidth=2)
+            lines.append(l)
+
+        price_text = ax.text(0.05, 0.95, '', transform=ax.transAxes, ha='left', va='top', fontsize=30, bbox=dict(boxstyle="round", fc="none", alpha=0))
+
+
+        cursor = mplcursors.cursor(line, hover=True)
+
+        @cursor.connect("add")
+        def on_add(sel):
+            sel.annotation.set_visible(False)
+            price_text.set_text(f"Prix : {sel.target[1]:.2f}")
+            price_text.set_color("lightgray")
+            self.canvas.draw_idle()
 
         self.canvas = FigureCanvasTkAgg(plt.gcf(), master = self)
         self.canvas.draw()
