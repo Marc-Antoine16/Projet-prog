@@ -12,19 +12,22 @@ class Watchlist(ctk.CTkFrame):
         self.stocks = stocks
         # importer la liste des stocks dans le S&P 500
         self.options = pd.read_csv("https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv")["Symbol"].tolist()
+        self.options_with_placeholder = ["Ajouter..."] + self.options
+        self.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         self.create_widgets()
 
     def create_widgets(self):
-        self.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
-
         self.master.grid_rowconfigure(0, weight= 1)
         self.master.grid_columnconfigure(0, weight= 1)
 
         self.titre_label = ctk.CTkLabel(self, text="Watchlist", font=("Arial", 30, "bold"))
         self.titre_label.grid(row=0, column=0, pady=(10,10))
 
-        self.dropdown = ctk.CTkOptionMenu(master=self.master, values=self.options, command=self.option_changed)
-        self.dropdown.grid(row=0, column=3, pady=(10,10))
+        self.dropdown = ctk.CTkOptionMenu(self,values=self.options_with_placeholder, command=self.option_changed)
+        self.dropdown.set("Ajouter...")
+        self.dropdown.grid(row=0, column=4, pady=(10,10))
+        
+        i = 1
 
         i = 1
         for stock in self.stocks:
@@ -88,6 +91,8 @@ class Watchlist(ctk.CTkFrame):
         self.create_widgets()
 
     def option_changed(self, value):
+        if value == "Ajouter...":
+            return
         self.current_choice = value
         self.stocks[value] = yf.download(value, start="2024-01-01", end="2025-10-11", interval="1d")
         self.clear_main_frame()
