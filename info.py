@@ -2,11 +2,13 @@ import customtkinter as ctk
 import time
 
 class Info(ctk.CTkFrame):
-    def __init__(self, master = None, stocks = None, nom = None):
+    def __init__(self, master = None, stocks = None, nom = None, temps = None, compte = None):
         super().__init__(master)
         self.master = master
         self.stocks = stocks
         self.nom = nom
+        self.temps = temps
+        self.compte = compte
         self.create_widgets()
 
     def create_widgets(self):
@@ -52,11 +54,11 @@ class Info(ctk.CTkFrame):
         self.watchlist_button = ctk.CTkButton(self, text="retour", fg_color = "transparent", hover_color= "cyan", font=("Arial", 30, "bold"), command= self.retour)
         self.watchlist_button.grid(row=0, column=0, padx = (0, 0), pady = (5,20))
 
-        self.boucle_stock(1)
+        self.boucle_stock()
 
-    def boucle_stock(self, temps):
-        if temps == len(self.stocks[next(iter(self.stocks))]['Close']):
-            temps = 1
+    def boucle_stock(self):
+        if self.temps == len(self.stocks[next(iter(self.stocks))]['Close']):
+            self.temps = 1
         
         else:
             for widget in self.winfo_children():
@@ -68,23 +70,23 @@ class Info(ctk.CTkFrame):
 
             i = 2
             for stock in self.stocks:
-                open = round(self.stocks[self.nom]['Open'].iloc[temps].iloc[0], 2)
+                open = round(self.stocks[self.nom]['Open'].iloc[self.temps].iloc[0], 2)
                 self.open = ctk.CTkLabel(self, text= open, text_color= "light gray", font = ("Arial", 24))
                 self.open.grid(row = i, column = 2, padx = (40, 0), pady = (10, 10))
 
-                close = round(self.stocks[self.nom]['Close'].iloc[temps].iloc[0], 2)
+                close = round(self.stocks[self.nom]['Close'].iloc[self.temps].iloc[0], 2)
                 self.close = ctk.CTkLabel(self, text= close, text_color= "light gray", font = ("Arial", 24))
                 self.close.grid(row = 3, column = 2, padx = (40, 0), pady = (10, 10))
                 
-                high = round(self.stocks[self.nom]['High'].iloc[temps].iloc[0], 2)
+                high = round(self.stocks[self.nom]['High'].iloc[self.temps].iloc[0], 2)
                 self.high = ctk.CTkLabel(self, text= high, text_color= "light gray", font = ("Arial", 24))
                 self.high.grid(row = 4, column = 2, padx = (40, 0), pady = (10, 10))
                 
-                low = round(self.stocks[self.nom]['Low'].iloc[temps].iloc[0], 2)
+                low = round(self.stocks[self.nom]['Low'].iloc[self.temps].iloc[0], 2)
                 self.low = ctk.CTkLabel(self, text= low, text_color= "light gray", font = ("Arial", 24))
                 self.low.grid(row = 5, column = 2, padx = (40, 0), pady = (10, 10))
 
-                volume = round(self.stocks[self.nom]['Volume'].iloc[temps].iloc[0], 2)
+                volume = round(self.stocks[self.nom]['Volume'].iloc[self.temps].iloc[0], 2)
                 self.volume = ctk.CTkLabel(self, text= volume, text_color= "light gray", font = ("Arial", 24))
                 self.volume.grid(row = 6, column = 2, padx = (30, 0), pady = (10, 10))
                 
@@ -98,9 +100,10 @@ class Info(ctk.CTkFrame):
 
                 i += 1   
 
-            self.date = ctk.CTkLabel(self, text=self.stocks[stock]. index[temps].date(), text_color= "light gray", font=("Arial", 24))
+            self.date = ctk.CTkLabel(self, text=self.stocks[stock]. index[self.temps].date(), text_color= "light gray", font=("Arial", 24))
             self.date.grid(row=0, column=3, padx = (0, 10), pady=(10,10))
-            self.boucle_id = self.after(5000, lambda: self.boucle_stock(temps + 1))
+            self.temps += 1
+            self.boucle_id = self.after(5000, lambda: self.boucle_stock())
 
     def clear_main_frame(self):
         if hasattr(self, "boucle_id"):
@@ -112,4 +115,4 @@ class Info(ctk.CTkFrame):
     def retour(self):
         from watchlist import Watchlist
         self.clear_main_frame()
-        Watchlist(self.master, self.stocks)
+        Watchlist(self.master, self.stocks, self.temps, self.compte)

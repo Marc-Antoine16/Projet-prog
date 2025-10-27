@@ -6,11 +6,13 @@ import mplcursors
 
 
 class Graph(ctk.CTkFrame):
-    def __init__(self, master=None, stocks = None, nom = None):
+    def __init__(self, master=None, stocks = None, nom = None, temps = None, compte = None):
         super().__init__(master)
         self.master = master
         self.stocks = stocks
         self.nom = nom
+        self.temps = temps
+        self.compte = compte
         self.create_widgets()
 
     def create_widgets(self):
@@ -64,4 +66,4 @@ class Graph(ctk.CTkFrame):
     def retour(self):
         from watchlist import Watchlist
         self.clear_main_frame()
-        Watchlist(self.master, self.stocks)
+        Watchlist(self.master, self.stocks, self.temps, self.compte)
