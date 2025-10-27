@@ -109,18 +109,37 @@ class Watchlist(ctk.CTkFrame):
 
     def ouvrir_compte(self):
         actions = self.compte.action if self.compte is not None else {}
+        argent = self.compte.argent if self.compte is not None else 1000
 
         self.clear_main_frame()
 
         from compte import Compte
-        self.compte = Compte(self.master, self.stocks, self.temps, action=actions)
+        self.compte = Compte(self.master, self.stocks, self.temps, action=actions, argent = argent)
 
         self.compte.create_widgets()
 
     def acheter_stock(self, action):
+        prix_achat = round(self.stocks[action]["Close"].iloc[self.temps - 1].iloc[0], 2)
+
         if self.compte is None:
             from compte import Compte
-            self.compte = Compte(self.master, self.stocks, self.temps, action = {})
-    
-        prix_achat = round(self.stocks[action]["Close"].iloc[self.temps - 1].iloc[0], 2)
-        self.compte.action[action] = {"data": self.stocks[action], "prix_achat": prix_achat}
+            self.compte = Compte(self.master, self.stocks, self.temps, action={}, argent=1000)
+
+        if self.compte.argent >= prix_achat:
+            self.compte.argent -= prix_achat
+
+            if action in self.compte.action:
+                ancienne_quantite = self.compte.action[action]["quantite"]
+                ancien_prix = self.compte.action[action]["prix_achat"]
+
+                nouveau_prix_moyen = ((ancien_prix * ancienne_quantite) + prix_achat) / (ancienne_quantite + 1)
+                self.compte.action[action]["quantite"] += 1
+
+            else:
+                self.compte.action[action] = {"data": self.stocks[action], "prix_achat": prix_achat, "quantite": 1}
+
+        else:
+            self.label = ctk.CTkLabel(self, text="Pas assez de fonds pour acheter cette action",
+                                    fg_color="dark gray", font=("Arial", 20))
+            self.label.grid(row=3, column=3, padx=(20, 20), pady=(20, 20))
+            self.after(3000, self.label.destroy)

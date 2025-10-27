@@ -7,7 +7,7 @@ from graphe import Graph
 
 
 
-APP_GEOMETRY = "800x600"
+APP_GEOMETRY = "900x600"
 APP_TITLE = "Paper Trading"
 
 class MainApp(ctk.CTk):
