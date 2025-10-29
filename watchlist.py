@@ -5,6 +5,7 @@ from graphe import Graph
 from compte import Compte
 import pandas as pd
 import time
+from PIL import Image
 
 class Watchlist(ctk.CTkFrame):
     def __init__(self, master=None, stocks=None, temps = None, compte = None):
@@ -27,10 +28,10 @@ class Watchlist(ctk.CTkFrame):
 
         self.dropdown = ctk.CTkOptionMenu(self,values=self.options_with_placeholder, command=self.option_changed)
         self.dropdown.set("Ajouter...")
-        self.dropdown.grid(row=0, column=4, pady=(10,10))
+        self.dropdown.grid(row=0, column=5, pady=(10,10))
 
         
-        self.bouton_compte = ctk.CTkButton(self, text = "Compte", fg_color="transparent", hover_color="red", font=("Arial", 24), command = self.ouvrir_compte)
+        self.bouton_compte = ctk.CTkButton(self, text = "Compte", fg_color="transparent", hover_color="blue", font=("Arial", 24), command = self.ouvrir_compte)
         self.bouton_compte.grid(row = 7, column = 0, pady = (10,10))
 
         i = 1
@@ -38,11 +39,11 @@ class Watchlist(ctk.CTkFrame):
             self.titre_action = ctk.CTkButton(self, text=stock,fg_color = "transparent", hover_color="lightpink", font=("Arial", 24, "bold"), command=lambda s=stock: self.onButtonClicked(s))
             self.titre_action.grid(row=i, column=0, pady=(10,10))
 
-            self.boutonGraphe = ctk.CTkButton(self, text="Graphique", fg_color="transparent", hover_color="orange", font=("Arial", 24), command = lambda s = stock: self.ouvrir_graph(s))
-            self.boutonGraphe.grid(row=i, column=2, pady=(10,10))
+            self.boutonGraphe = ctk.CTkButton(self, text="📈", fg_color="transparent", hover_color="orange", font=("Arial", 24), width=60, height=60, command = lambda s = stock: self.ouvrir_graph(s))
+            self.boutonGraphe.grid(row=i, column=9, pady=(10,10))
             
-            self.bouton_supprime = ctk.CTkButton(self, text="Supprimer", fg_color="transparent", hover_color="red", font=("Arial", 24), command = lambda s = stock: self.supprime_stock(s))
-            self.bouton_supprime.grid(row=i, column=3, pady=(10,10))
+            self.bouton_supprime = ctk.CTkButton(self, text="❎", fg_color="transparent", hover_color="red", font=("Arial", 24), width=60, height=60 , command = lambda s = stock: self.supprime_stock(s))
+            self.bouton_supprime.grid(row=i, column=10, pady=(10,10))
 
             self.bouton_achat = ctk.CTkButton(self, text="Acheter", fg_color="transparent", hover_color="green", font=("Arial", 24), command = lambda a = stock: self.acheter_stock(a))
             self.bouton_achat.grid(row = i, column = 4, pady = (10, 10))
@@ -63,11 +64,13 @@ class Watchlist(ctk.CTkFrame):
                     row = info.get("row")
                     if (col == 1 and row != 0) or (col == 3 and row == 0):
                         widget.destroy()
+            
 
             i = 1
             for stock in self.stocks:
                 self.titre_prix_action = ctk.CTkButton(self, text=round(self.stocks[stock]['Close'].iloc[self.temps].iloc[0], 2), fg_color = "transparent", hover_color="lightpink", font=("Arial", 24, "bold"), command=lambda s=stock: self.onButtonClicked(s))
                 self.titre_prix_action.grid(row=i, column=1, pady=(10,10))
+
 
                 i += 1   
 
@@ -139,7 +142,6 @@ class Watchlist(ctk.CTkFrame):
                 self.compte.action[action] = {"data": self.stocks[action], "prix_achat": prix_achat, "quantite": 1}
 
         else:
-            self.label = ctk.CTkLabel(self, text="Pas assez de fonds pour acheter cette action",
-                                    fg_color="dark gray", font=("Arial", 20))
-            self.label.grid(row=3, column=3, padx=(20, 20), pady=(20, 20))
+            self.label = ctk.CTkLabel(self, text="Pas assez de fonds pour acheter cette action", fg_color="dark gray", font=("Arial", 20))
+            self.label.grid(row=5, column=1, padx=(20, 20), pady=(20, 20))
             self.after(3000, self.label.destroy)
