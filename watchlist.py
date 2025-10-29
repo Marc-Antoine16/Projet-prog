@@ -4,6 +4,7 @@ import yfinance as yf
 from graphe import Graph
 import pandas as pd
 import time
+from PIL import Image
 
 class Watchlist(ctk.CTkFrame):
     def __init__(self, master=None, stocks=None):
@@ -26,6 +27,8 @@ class Watchlist(ctk.CTkFrame):
         self.dropdown = ctk.CTkOptionMenu(self,values=self.options_with_placeholder, command=self.option_changed)
         self.dropdown.set("Ajouter...")
         self.dropdown.grid(row=0, column=4, pady=(10,10))
+
+    
         
         i = 1
 
@@ -34,11 +37,11 @@ class Watchlist(ctk.CTkFrame):
             self.titre_action = ctk.CTkButton(self, text=stock,fg_color = "transparent", hover_color="lightpink", font=("Arial", 24, "bold"), command=lambda s=stock: self.onButtonClicked(s))
             self.titre_action.grid(row=i, column=0, pady=(10,10))
 
-            self.boutonGraphe = ctk.CTkButton(self, text="Graphique", fg_color="transparent", hover_color="orange", font=("Arial", 24), command = lambda s = stock: self.on_button_click(s))
-            self.boutonGraphe.grid(row=i, column=2, pady=(10,10))
+            self.boutonGraphe = ctk.CTkButton(self, text="📈", fg_color="transparent", hover_color="orange", font=("Arial", 24), width=60, height=60, command = lambda s = stock: self.on_button_click(s))
+            self.boutonGraphe.grid(row=i, column=9, pady=(10,10))
             
-            self.bouton_supprime = ctk.CTkButton(self, text="Supprimer", fg_color="transparent", hover_color="red", font=("Arial", 24), command = lambda s = stock: self.supprime_stock(s))
-            self.bouton_supprime.grid(row=i, column=3, pady=(10,10))
+            self.bouton_supprime = ctk.CTkButton(self, text="❎", fg_color="transparent", hover_color="red", font=("Arial", 24), width=60, height=60 , command = lambda s = stock: self.supprime_stock(s))
+            self.bouton_supprime.grid(row=i, column=10, pady=(10,10))
 
             i += 1      
 
@@ -55,11 +58,14 @@ class Watchlist(ctk.CTkFrame):
                     row = info.get("row")
                     if (col == 1 and row != 0) or (col == 3 and row == 0):
                         widget.destroy()
+            
 
             i = 1
             for stock in self.stocks:
+
                 self.titre_prix_action = ctk.CTkButton(self, text=round(self.stocks[stock]['Close'].iloc[temps].iloc[0], 2), fg_color = "transparent", hover_color="lightpink", font=("Arial", 24, "bold"), command=lambda s=stock: self.onButtonClicked(s))
                 self.titre_prix_action.grid(row=i, column=1, pady=(10,10))
+
 
                 i += 1   
 

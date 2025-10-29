@@ -28,8 +28,18 @@ class Graph(ctk.CTkFrame):
         ax.set_ylabel("Prix")
     
         ax.set_facecolor("black")
-        ax.grid(False)
 
+        ax.grid(False)
+        ax.tick_params(colors='white')                 # Couleur des ticks (valeurs sur les axes)
+        ax.xaxis.label.set_color('white')              # Label de l'axe X (Date)
+        ax.yaxis.label.set_color('white')              # Label de l'axe Y (Prix)
+        ax.title.set_color('white')
+
+        for spine in ax.spines.values():
+            spine.set_color('white')
+
+        fig.patch.set_facecolor('black') #figure autour du graphique
+        
         lines = []
         for i in range(1, len(x)):
             prev_val = float(y.iloc[i - 1])
