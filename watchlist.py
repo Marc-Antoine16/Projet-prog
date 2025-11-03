@@ -5,6 +5,7 @@ from graphe import Graph
 from compte import Compte
 import pandas as pd
 import time
+from PIL import Image
 
 class Watchlist(ctk.CTkFrame):
     def __init__(self, master=None, stocks=None, temps = None, compte = None):
@@ -78,7 +79,7 @@ class Watchlist(ctk.CTkFrame):
                 self.prix_buttons[stock] = ctk.CTkButton(self,text=textePrix, fg_color="transparent", hover_color="lightpink",font=("Arial", 24, "bold"),command=lambda s=stock: self.onButtonClicked(s) )
                 self.prix_buttons[stock].grid(row=i, column=1, pady=(10,10))
             else:
-                self.prix_buttons[stock].configure(text=prix)
+                self.prix_buttons[stock].configure(text=str(prix))
 
             if self.temps >= 1:  #au moins deux jours
                 dernier = float(y.iloc[self.temps])
@@ -116,8 +117,7 @@ class Watchlist(ctk.CTkFrame):
             self.date_label.configure(text=date_text)
 
         self.temps += 1
-        self.after(5000, self.boucle_stock)
-
+        self.boucle_id = self.after(5000, self.boucle_stock)
 
     def clear_main_frame(self):
         if hasattr(self, "boucle_id"):
