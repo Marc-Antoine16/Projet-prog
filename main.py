@@ -7,7 +7,7 @@ from graphe import Graph
 
 
 
-APP_GEOMETRY = "800x600"
+APP_GEOMETRY = "900x600"
 APP_TITLE = "Paper Trading"
 
 class MainApp(ctk.CTk):
@@ -24,7 +24,7 @@ class MainApp(ctk.CTk):
         self.protocol("WM_DELETE_WINDOW", self.quit)
         self.show_watchlist()
     def show_watchlist(self):
-        self.current_page = Watchlist(master=self,stocks=self.stocks)
+        self.current_page = Watchlist(master=self,stocks=self.stocks, temps= 1)
     
 if __name__ == "__main__":
     app = MainApp() 
