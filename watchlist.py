@@ -33,49 +33,91 @@ class Watchlist(ctk.CTkFrame):
         self.bouton_compte = ctk.CTkButton(self, text = "Compte", fg_color="transparent", hover_color="red", font=("Arial", 24), command = self.ouvrir_compte)
         self.bouton_compte.grid(row = 7, column = 0, pady = (10,10))
 
+
         i = 1
         for stock in self.stocks:
-            self.titre_action = ctk.CTkButton(self, text=stock,fg_color = "transparent", hover_color="lightpink", font=("Arial", 24, "bold"), command=lambda s=stock: self.onButtonClicked(s))
+            self.titre_action = ctk.CTkButton(self, text=stock ,fg_color = "transparent", hover_color="lightpink", font=("Arial", 24, "bold"), command=lambda s=stock: self.onButtonClicked(s))
             self.titre_action.grid(row=i, column=0, pady=(10,10))
 
-            self.boutonGraphe = ctk.CTkButton(self, text="Graphique", fg_color="transparent", hover_color="orange", font=("Arial", 24), command = lambda s = stock: self.ouvrir_graph(s))
-            self.boutonGraphe.grid(row=i, column=2, pady=(10,10))
+            self.boutonGraphe = ctk.CTkButton(self, text="📈", fg_color="transparent", hover_color="orange", font=("Arial", 24), width=60, height=60 , command = lambda s = stock: self.ouvrir_graph(s))
+            self.boutonGraphe.grid(row=i, column=9, pady=(10,10))
             
-            self.bouton_supprime = ctk.CTkButton(self, text="Supprimer", fg_color="transparent", hover_color="red", font=("Arial", 24), command = lambda s = stock: self.supprime_stock(s))
-            self.bouton_supprime.grid(row=i, column=3, pady=(10,10))
+            self.bouton_supprime = ctk.CTkButton(self, text="❎", fg_color="transparent", hover_color="red", font=("Arial", 24), width=60, height=60, command = lambda s = stock: self.supprime_stock(s))
+            self.bouton_supprime.grid(row=i, column=10, pady=(10,10))
 
-            self.bouton_achat = ctk.CTkButton(self, text="Acheter", fg_color="transparent", hover_color="green", font=("Arial", 24), command = lambda a = stock: self.acheter_stock(a))
+            self.bouton_achat = ctk.CTkButton(self, text="Acheter", fg_color="transparent", hover_color="green", font=("Arial", 24), width=80, height=60 , command = lambda a = stock: self.acheter_stock(a))
             self.bouton_achat.grid(row = i, column = 4, pady = (10, 10))
 
+            
 
             i += 1      
 
         self.boucle_stock()
 
     def boucle_stock(self):
-        if self.temps == len(self.stocks[next(iter(self.stocks))]['Close']):
-            self.temps = 1
-        
+        #Initialisation des dictionnaires de widgets si pas fait
+        if not hasattr(self, "prix_buttons"):
+            self.prix_buttons = {}
+        if not hasattr(self, "rendement_labels"):
+            self.rendement_labels = {}
+        if not hasattr(self, "date_label"):
+            self.date_label = None
+
+        #Reset du temps si dépasse le nombre de jours
+        if self.temps >= len(self.stocks[next(iter(self.stocks))]['Close']):
+            self.temps = 0
+
+        for i, stock in enumerate(self.stocks, start=1):
+            data = self.stocks[stock]
+            y = data["Close"]
+
+            prix = round(float(y.iloc[self.temps]), 2)
+            textePrix=str(prix) #evite le chargement
+
+            if stock not in self.prix_buttons:
+                self.prix_buttons[stock] = ctk.CTkButton(self,text=textePrix, fg_color="transparent", hover_color="lightpink",font=("Arial", 24, "bold"),command=lambda s=stock: self.onButtonClicked(s) )
+                self.prix_buttons[stock].grid(row=i, column=1, pady=(10,10))
+            else:
+                self.prix_buttons[stock].configure(text=prix)
+
+            if self.temps >= 1:  #au moins deux jours
+                dernier = float(y.iloc[self.temps])
+                avant_dernier = float(y.iloc[self.temps - 1])
+                variation = dernier - avant_dernier
+                pourcentage = (variation / avant_dernier) * 100
+            else:
+                variation = 0.0
+                pourcentage = 0.0
+
+            if variation >= 0:
+                signe = "+"
+                couleur = "green"
+            else:
+                signe="-"
+                couleur="red"
+
+            variation = abs(round(variation, 2))
+            pourcentage = abs(round(pourcentage, 2))
+
+            texte_rendement = f"{signe}{variation} $ ({signe}{pourcentage}%) la dernière journée."
+
+            if stock not in self.rendement_labels:
+                self.rendement_labels[stock] = ctk.CTkLabel(self,text=texte_rendement, text_color=couleur, font=("Arial", 14))
+                self.rendement_labels[stock].grid(row=i, column=3, pady=(10,10))
+            else:
+                self.rendement_labels[stock].configure(text=f"{signe}{variation} $ ({signe}{pourcentage}%) la dernière journée.",text_color=couleur,  font=("Arial", 14))
+
+        date_text = self.stocks[next(iter(self.stocks))].index[self.temps].date()
+
+        if self.date_label is None:
+            self.date_label = ctk.CTkLabel(self,text=date_text,text_color="light gray",font=("Arial", 24))
+            self.date_label.grid(row=0, column=3, padx=(0,10), pady=(10,10))
         else:
-            for widget in self.winfo_children():
-                    info = widget.grid_info()
-                    col = info.get("column")
-                    row = info.get("row")
-                    if (col == 1 and row != 0) or (col == 3 and row == 0):
-                        widget.destroy()
+            self.date_label.configure(text=date_text)
 
-            i = 1
-            for stock in self.stocks:
-                self.titre_prix_action = ctk.CTkButton(self, text=round(self.stocks[stock]['Close'].iloc[self.temps].iloc[0], 2), fg_color = "transparent", hover_color="lightpink", font=("Arial", 24, "bold"), command=lambda s=stock: self.onButtonClicked(s))
-                self.titre_prix_action.grid(row=i, column=1, pady=(10,10))
+        self.temps += 1
+        self.after(5000, self.boucle_stock)
 
-                i += 1   
-
-            self.date = ctk.CTkLabel(self, text=self.stocks[stock]. index[self.temps].date(), text_color= "light gray", font=("Arial", 24))
-            self.date.grid(row=0, column=3, padx = (0, 10), pady=(10,10))
-            
-            self.temps += 1
-            self.boucle_id = self.after(5000, lambda: self.boucle_stock())
 
     def clear_main_frame(self):
         if hasattr(self, "boucle_id"):
@@ -99,13 +141,60 @@ class Watchlist(ctk.CTkFrame):
         self.clear_main_frame()
         self.create_widgets()
 
-    def option_changed(self, value):
+    def option_changed(self, value): #ajout nouveau stock, créer widgets sans reconstruire la page pour que les labels de rendement deja existant reste visible et continue de se mettre a jour
         if value == "Ajouter...":
             return
-        self.current_choice = value
-        self.stocks[value] = yf.download(value, start="2024-01-01", end="2025-10-11", interval="1d")
-        self.clear_main_frame()
-        self.create_widgets()
+        
+        if value in self.stocks:  # déjà dans la watchlist
+            return
+        
+        df = yf.download(value, start="2024-01-01", end="2025-10-11", interval="1d")
+
+        df["Close"] = df["Close"].astype(float)
+        self.stocks[value] = df
+
+        # Ajouter uniquement les widgets pour ce stock
+        i = len(self.stocks)  
+
+       
+        btn_action = ctk.CTkButton(self, text=value, fg_color="transparent", hover_color="lightpink", font=("Arial", 24, "bold"), command=lambda s=value: self.onButtonClicked(s))
+        btn_action.grid(row=i, column=0, pady=(10,10))
+
+        
+        btn_graph = ctk.CTkButton(self, text="📈", fg_color="transparent", hover_color="orange",font=("Arial", 24), width=60, height=60, command=lambda s=value: self.ouvrir_graph(s))
+        btn_graph.grid(row=i, column=9, pady=(10,10))
+
+        btn_sup = ctk.CTkButton(self, text="❎", fg_color="transparent", hover_color="red",font=("Arial", 24), width=60, height=60, command=lambda s=value: self.supprime_stock(s))
+        btn_sup.grid(row=i, column=10, pady=(10,10))
+
+        btn_achat = ctk.CTkButton(self, text="Acheter", fg_color="transparent", hover_color="green",font=("Arial", 24), width=80, height=60, command=lambda s=value: self.acheter_stock(s))
+        btn_achat.grid(row=i, column=4, pady=(10,10))
+
+        prix = round(float(df["Close"].iloc[self.temps]), 2)
+        self.prix_buttons[value] = ctk.CTkButton(self, text=str(prix), fg_color="transparent", hover_color="lightpink",font=("Arial", 24, "bold"), command=lambda s=value: self.onButtonClicked(s))
+        self.prix_buttons[value].grid(row=i, column=1, pady=(10,10))
+
+        if self.temps >= 1:
+            dernier = float(df["Close"].iloc[self.temps])
+            avant_dernier = float(df["Close"].iloc[self.temps - 1])
+            variation = dernier - avant_dernier
+            pourcentage = (variation / avant_dernier) * 100
+        else:
+            variation = 0
+            pourcentage = 0
+
+        signe = "+" if variation >= 0 else "-"
+        couleur = "green" if variation >= 0 else "red"
+
+        variation = abs(round(variation, 2))
+        pourcentage = abs(round(pourcentage, 2))
+        texte_rendement = f"{signe}{variation} $ ({signe}{pourcentage}% ) la dernière journée."
+
+        self.rendement_labels[value] = ctk.CTkLabel(self, text=texte_rendement, text_color=couleur, font=("Arial", 14))
+        self.rendement_labels[value].grid(row=i, column=3, pady=(10,10))
+
+
+        
 
     def ouvrir_compte(self):
         actions = self.compte.action if self.compte is not None else {}
