@@ -28,10 +28,10 @@ class Watchlist(ctk.CTkFrame):
 
         self.dropdown = ctk.CTkOptionMenu(self,values=self.options_with_placeholder, command=self.option_changed)
         self.dropdown.set("Ajouter...")
-        self.dropdown.grid(row=0, column=5, pady=(10,10))
+        self.dropdown.grid(row=0, column=4, pady=(10,10))
 
         
-        self.bouton_compte = ctk.CTkButton(self, text = "Compte", fg_color="transparent", hover_color="blue", font=("Arial", 24), command = self.ouvrir_compte)
+        self.bouton_compte = ctk.CTkButton(self, text = "Compte", fg_color="transparent", hover_color="red", font=("Arial", 24), command = self.ouvrir_compte)
         self.bouton_compte.grid(row = 7, column = 0, pady = (10,10))
 
 
@@ -56,6 +56,12 @@ class Watchlist(ctk.CTkFrame):
         self.boucle_stock()
 
     def boucle_stock(self):
+        if not self.stocks:
+            if self.date_label is not None:
+                self.date_label.configure(text="Aucun stock")
+            self.temps += 1  # le temps continue quand même
+            self.boucle_id = self.after(5000, self.boucle_stock)
+            return
         #Initialisation des dictionnaires de widgets si pas fait
         if not hasattr(self, "prix_buttons"):
             self.prix_buttons = {}
@@ -121,11 +127,13 @@ class Watchlist(ctk.CTkFrame):
 
     def clear_main_frame(self):
         if hasattr(self, "boucle_id"):
-            self.after_cancel(self.boucle_id)
-            
+            try:
+                self.after_cancel(self.boucle_id)
+            except Exception:
+                pass
+
         for widget in self.winfo_children():
             widget.destroy()
-        self.dropdown.destroy()
         
         
     def onButtonClicked(self, pseudo):
@@ -135,11 +143,6 @@ class Watchlist(ctk.CTkFrame):
     def ouvrir_graph(self, name):
         self.clear_main_frame()
         Graph(self.master, self.stocks, name, self.temps, self.compte)
-    
-    def supprime_stock(self, nom):
-        del self.stocks[nom]
-        self.clear_main_frame()
-        self.create_widgets()
 
     def option_changed(self, value): #ajout nouveau stock, créer widgets sans reconstruire la page pour que les labels de rendement deja existant reste visible et continue de se mettre a jour
         if value == "Ajouter...":
@@ -194,8 +197,6 @@ class Watchlist(ctk.CTkFrame):
         self.rendement_labels[value].grid(row=i, column=3, pady=(10,10))
 
 
-        
-
     def ouvrir_compte(self):
         actions = self.compte.action if self.compte is not None else {}
         argent = self.compte.argent if self.compte is not None else 1000
@@ -228,6 +229,32 @@ class Watchlist(ctk.CTkFrame):
                 self.compte.action[action] = {"data": self.stocks[action], "prix_achat": prix_achat, "quantite": 1}
 
         else:
-            self.label = ctk.CTkLabel(self, text="Pas assez de fonds pour acheter cette action", fg_color="dark gray", font=("Arial", 20))
-            self.label.grid(row=5, column=1, padx=(20, 20), pady=(20, 20))
+            self.label = ctk.CTkLabel(self, text="Pas assez de fonds pour acheter cette action",
+                                    fg_color="dark gray", font=("Arial", 20))
+            self.label.grid(row=3, column=3, padx=(20, 20), pady=(20, 20))
             self.after(3000, self.label.destroy)
+    
+
+    def supprime_stock(self, nom):
+        if hasattr(self, "boucle_id"):
+            try:
+                self.after_cancel(self.boucle_id)
+            except Exception:
+                pass
+
+        if nom in self.stocks:
+            del self.stocks[nom]
+
+        if hasattr(self, "prix_buttons"):
+            self.prix_buttons.clear()
+        if hasattr(self, "rendement_labels"):
+            self.rendement_labels.clear()
+        if hasattr(self, "date_label") and self.date_label is not None:
+            try:
+                self.date_label.destroy()
+            except Exception:
+                pass
+            self.date_label = None
+
+        self.clear_main_frame()
+        self.create_widgets()
