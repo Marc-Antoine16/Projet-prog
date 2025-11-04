@@ -8,7 +8,7 @@ from login import LoginPage
 
 
 
-APP_GEOMETRY = "900x600"
+APP_GEOMETRY = "900x700"
 APP_TITLE = "Paper Trading"
 
 class MainApp(ctk.CTk):

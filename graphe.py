@@ -94,7 +94,7 @@ class Graph(ctk.CTkFrame):
 
         # Petite fonction pour convertir correctement les valeurs sinon erreur
         def to_float(v):
-            if hasattr(v, "iloc"):
+            if hasattr(v, "iloc"): #sert à vérifier si un objet possède un attribut
                 return float(v.iloc[0])
             return float(v)
 

@@ -33,11 +33,11 @@ class LoginPage(ctk.CTkFrame):
         self.message_label = ctk.CTkLabel(self, text="", text_color="red")
         self.message_label.grid(row=3, column=0, pady=(4, 8))
 
-        # Bouton de connextion 
+   
         self.login_button = ctk.CTkButton(self, text="Se connecter", command=self.attempt_login)
         self.login_button.grid(row=4, column=0, pady=8)
 
-        # Bouton crée un compte
+        
         self.create_button = ctk.CTkButton(self, text="Créer un compte", command=self.create_account)
         self.create_button.grid(row=5, column=0, pady=6)
 
@@ -84,7 +84,7 @@ class LoginPage(ctk.CTkFrame):
         users_file = "users.json"
         users = {}
 
-        
+
         if os.path.exists(users_file):
             with open(users_file, "r") as f:
                 users = json.load(f)
