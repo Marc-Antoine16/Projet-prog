@@ -84,7 +84,7 @@ class LoginPage(ctk.CTkFrame):
         users_file = "users.json"
         users = {}
 
-  
+        
         if os.path.exists(users_file):
             with open(users_file, "r") as f:
                 users = json.load(f)
