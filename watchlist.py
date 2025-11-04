@@ -26,6 +26,9 @@ class Watchlist(ctk.CTkFrame):
         self.titre_label = ctk.CTkLabel(self, text="Watchlist", font=("Arial", 30, "bold"))
         self.titre_label.grid(row=0, column=0, pady=(10,10))
 
+        self.bouton_compte = ctk.CTkButton(self, text = "Deconnexion", fg_color="transparent", hover_color="red", font=("Arial", 24), command= lambda : self.logout())
+        self.bouton_compte.grid(row = 8, column = 0, pady = (10,10))
+
         self.dropdown = ctk.CTkOptionMenu(self,values=self.options_with_placeholder, command=self.option_changed)
         self.dropdown.set("Ajouter...")
         self.dropdown.grid(row=0, column=4, pady=(10,10))
@@ -34,6 +37,7 @@ class Watchlist(ctk.CTkFrame):
         self.bouton_compte = ctk.CTkButton(self, text = "Compte", fg_color="transparent", hover_color="red", font=("Arial", 24), command = self.ouvrir_compte)
         self.bouton_compte.grid(row = 7, column = 0, pady = (10,10))
 
+        
 
         i = 1
         for stock in self.stocks:
@@ -143,6 +147,12 @@ class Watchlist(ctk.CTkFrame):
     def ouvrir_graph(self, name):
         self.clear_main_frame()
         Graph(self.master, self.stocks, name, self.temps, self.compte)
+    
+    def logout(self):
+        self.clear_main_frame()
+        from login import LoginPage
+        LoginPage(master=self, stocks=self.stocks)
+
 
     def option_changed(self, value): #ajout nouveau stock, créer widgets sans reconstruire la page pour que les labels de rendement deja existant reste visible et continue de se mettre a jour
         if value == "Ajouter...":

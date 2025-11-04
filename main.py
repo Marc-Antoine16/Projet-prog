@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from watchlist import Watchlist
 from graphe import Graph
+from login import LoginPage
 
 
 
@@ -22,9 +23,13 @@ class MainApp(ctk.CTk):
             "NVDA" : yf.download("NVDA", start="2024-01-01", end="2025-10-11", interval="1d")
         }
         self.protocol("WM_DELETE_WINDOW", self.quit)
-        self.show_watchlist()
+        self.show_login()
+
     def show_watchlist(self):
         self.current_page = Watchlist(master=self,stocks=self.stocks, temps= 1)
+
+    def show_login(self):
+        self.current_page = LoginPage(master=self, stocks=self.stocks)
     
 if __name__ == "__main__":
     app = MainApp() 
