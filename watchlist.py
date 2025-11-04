@@ -6,6 +6,7 @@ from compte import Compte
 import pandas as pd
 import time
 from PIL import Image
+from datetime import date
 
 class Watchlist(ctk.CTkFrame):
     def __init__(self, master=None, stocks=None, temps = None, compte = None):
@@ -161,7 +162,7 @@ class Watchlist(ctk.CTkFrame):
         if value in self.stocks:  # déjà dans la watchlist
             return
         
-        df = yf.download(value, start="2024-01-01", end="2025-10-11", interval="1d")
+        df = yf.download(value, start="2024-01-01", end=f"{date.today()}", interval="1d")
 
         df["Close"] = df["Close"].astype(float)
         self.stocks[value] = df

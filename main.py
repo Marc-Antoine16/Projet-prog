@@ -5,6 +5,7 @@ import numpy as np
 from watchlist import Watchlist
 from graphe import Graph
 from login import LoginPage
+from datetime import date
 
 
 
@@ -17,10 +18,11 @@ class MainApp(ctk.CTk):
         ctk.set_appearance_mode("Dark")      
         self.geometry(APP_GEOMETRY)
         self.title(APP_TITLE)
+        self.date = date.today()
         self.stocks = {
-            "TSLA" : yf.download("TSLA", start="2024-01-01", end="2025-10-11", interval="1d"),
-            "AAPL" : yf.download("AAPL", start="2024-01-01", end="2025-10-11", interval="1d"),
-            "NVDA" : yf.download("NVDA", start="2024-01-01", end="2025-10-11", interval="1d")
+            "TSLA" : yf.download("TSLA", start="2024-01-01", end=f"{self.date}", interval="1d"),
+            "AAPL" : yf.download("AAPL", start="2024-01-01", end=f"{self.date}", interval="1d"),
+            "NVDA" : yf.download("NVDA", start="2024-01-01", end=f"{self.date}", interval="1d")
         }
         self.protocol("WM_DELETE_WINDOW", self.quit)
         self.show_login()
