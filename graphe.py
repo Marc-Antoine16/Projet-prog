@@ -37,7 +37,7 @@ class Graph(ctk.CTkFrame):
         self.ax.yaxis.label.set_color('white')
         self.ax.title.set_color('white')
 
-        #canvas
+        #canvas (integre graphique matplot dans tkinter)
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.canvas.get_tk_widget().grid(row=1, column=0, columnspan=3, pady=(10, 10))
 

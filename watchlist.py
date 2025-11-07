@@ -6,6 +6,7 @@ from compte import Compte
 import pandas as pd
 import time
 from PIL import Image
+from datetime import date
 
 class Watchlist(ctk.CTkFrame):
     def __init__(self, master=None, stocks=None, temps = None, compte = None):
@@ -14,6 +15,7 @@ class Watchlist(ctk.CTkFrame):
         self.stocks = stocks
         self.temps = temps
         self.compte = compte
+        self.date = date.today()
         self.options = pd.read_csv("https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv")["Symbol"].tolist()
         self.options_with_placeholder = ["Ajouter..."] + self.options
         self.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
@@ -151,7 +153,7 @@ class Watchlist(ctk.CTkFrame):
         if value in self.stocks:  # déjà dans la watchlist
             return
         
-        df = yf.download(value, start="2024-01-01", end="2025-10-11", interval="1d")
+        df = yf.download(value, start="2024-01-01", end=self.date, interval="1d")
 
         df["Close"] = df["Close"].astype(float)
         self.stocks[value] = df
