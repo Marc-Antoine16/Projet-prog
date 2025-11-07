@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import time
+import yfinance as yf
 
 class Info(ctk.CTkFrame):
     def __init__(self, master = None, stocks = None, nom = None, temps = None, compte = None):
@@ -7,52 +8,42 @@ class Info(ctk.CTkFrame):
         self.master = master
         self.stocks = stocks
         self.nom = nom
+        self.stock = yf.Ticker(self.nom)
         self.temps = temps
         self.compte = compte
+        self.nbColonnes = 3
+        self.nbLignes = 8
         self.create_widgets()
 
     def create_widgets(self):
         self.grid(row=0, column=0, padx=50, pady=50, sticky="nsew")
 
-        self.master.grid_rowconfigure(0, weight= 1)
-        self.master.grid_columnconfigure(0, weight= 1)
+        for i in range(self.nbColonnes):
+            self.master.grid_columnconfigure(i, weight= 1)
+        
+        for i in range(self.nbLignes):
+            self.master.grid_rowconfigure(0, weight= 1)
 
-        self.titre_label = ctk.CTkLabel(self, text="Statistiques", font=("Arial", 30, "bold"))
-        self.titre_label.grid(row=1, column=0, padx = (10, 30), pady=(5,20))
+        self.watchlist_button = ctk.CTkButton(self, text="retour", fg_color = "transparent", hover_color= "light gray", border_width=2, border_color="white",  font=("Arial", 30, "bold"), command= self.retour)
+        self.watchlist_button.grid(row=0, column=0, padx = (0, 0), pady = (5,20), sticky="w")
 
-        self.titre_nom = ctk.CTkLabel(self, text=self.nom, font=("Arial", 40, "bold"))
+        self.titre_nom = ctk.CTkLabel(self, text=f"{self.nom} - {self.stock.info["longName"]}", justify="center", anchor="center", font=("Arial", 30, "bold"))
         self.titre_nom.grid(row=0, column=1, padx = (20, 20), pady=(5,20))
 
-        self.titre_prix = ctk.CTkLabel(self, text= "Prix", font=("Arial", 30, "bold"))
-        self.titre_prix.grid(row=1, column=2, padx = (30, 0), pady=(5,20))
+        self.ligne1 = ctk.CTkFrame(self, height=2, width=300, fg_color="gray")
+        self.ligne1.grid(row=1, column=0, columnspan=3, pady=10, sticky="ew")
 
-        date = self.stocks[self.nom].index[0].date()
-        self.date = ctk.CTkLabel(self, text=f"date : {date}", text_color= "light gray", font=("Arial", 20))
-        self.date.grid(row=0, column=3, padx = (0, 50), pady=(5,10))
+        self.titre_label = ctk.CTkLabel(self, text="Statistiques", font=("Arial", 28, "bold"))
+        self.titre_label.grid(row=2, column=0, padx = (10, 30), pady=20)
 
-        self.categorie_open = ctk.CTkLabel(self, text= "Ouverture", text_color= "light gray", font = ("Arial", 24))
-        self.categorie_open.grid(row = 2, column = 0, padx = (10, 40), pady = (10, 10))
+        self.titre_prix = ctk.CTkLabel(self, text= "Prix", font=("Arial", 28, "bold"))
+        self.titre_prix.grid(row=2, column=1, padx = (30, 0), pady=20)
 
-        self.categorie_close = ctk.CTkLabel(self, text= "Fermeture", text_color= "light gray", font = ("Arial", 24))
-        self.categorie_close.grid(row = 3, column = 0, padx = (10, 40), pady = (10, 10))
+        self.titre_nouvelles = ctk.CTkLabel(self, text= "Nouvelles récentes", font=("Arial", 28, "bold"))
+        self.titre_nouvelles.grid(row=2, column=2, padx = (30, 100), pady=20, sticky="e")
 
-        self.categorie_high = ctk.CTkLabel(self, text= "High", text_color= "light gray", font = ("Arial", 24))
-        self.categorie_high.grid(row = 4, column = 0, padx = (10, 40), pady = (10, 10))
-
-        self.categorie_low = ctk.CTkLabel(self, text= "Low", text_color= "light gray", font = ("Arial", 24))
-        self.categorie_low.grid(row = 5, column = 0, padx = (10, 40), pady = (10, 10))
-
-        self.categorie_volume = ctk.CTkLabel(self, text= "Volume", text_color= "light gray", font = ("Arial", 24))
-        self.categorie_volume.grid(row = 6, column = 0, padx = (10, 40), pady = (10, 10))
-
-        self.categorie_pourcentage = ctk.CTkLabel(self, text= "Pourcentage", text_color= "light gray", font = ("Arial", 24))
-        self.categorie_pourcentage.grid(row = 7, column = 0, padx = (10, 40), pady = (10, 10))
-
-        self.categorie_variation = ctk.CTkLabel(self, text= "Variation", text_color= "light gray", font = ("Arial", 24))
-        self.categorie_variation.grid(row = 8, column = 0, padx = (10, 40), pady = (10, 10))
-        
-        self.watchlist_button = ctk.CTkButton(self, text="retour", fg_color = "transparent", hover_color= "cyan", font=("Arial", 30, "bold"), command= self.retour)
-        self.watchlist_button.grid(row=0, column=0, padx = (0, 0), pady = (5,20))
+        self.ligne2 = ctk.CTkFrame(self, height=2, width=300, fg_color="gray")
+        self.ligne2.grid(row=3, column=0, columnspan=3, pady=10, sticky="ew")
 
         self.boucle_stock()
 
@@ -65,43 +56,42 @@ class Info(ctk.CTkFrame):
                     info = widget.grid_info()
                     col = info.get("column")
                     row = info.get("row")
-                    if (col == 2 and row != (0 or 1)) or (col == 3 and row == 0):
+                    if (col == 2 and row == 0) or (col == (0 or 1) and row >= 4):
                         widget.destroy()
 
-            i = 2
             for stock in self.stocks:
-                open = round(self.stocks[self.nom]['Open'].iloc[self.temps].iloc[0], 2)
-                self.open = ctk.CTkLabel(self, text= open, text_color= "light gray", font = ("Arial", 24))
-                self.open.grid(row = i, column = 2, padx = (40, 0), pady = (10, 10))
 
-                close = round(self.stocks[self.nom]['Close'].iloc[self.temps].iloc[0], 2)
-                self.close = ctk.CTkLabel(self, text= close, text_color= "light gray", font = ("Arial", 24))
-                self.close.grid(row = 3, column = 2, padx = (40, 0), pady = (10, 10))
+                self.open = round(self.stocks[self.nom]['Open'].iloc[self.temps].iloc[0], 2)
+                self.open_Label = ctk.CTkLabel(self, text= f"{"Ouverture :":<12}{self.open:4}", text_color= "light gray", font = ("Arial", 24))
+                self.open_Label.grid(row = 4, column = 0, padx = (10, 30), pady = (10, 10), sticky="w")
+
+                self.close = round(self.stocks[self.nom]['Close'].iloc[self.temps].iloc[0], 2)
+                self.close_Label = ctk.CTkLabel(self, text= f"{"Fermeture :":<12}{self.close:<4}", text_color= "light gray", font = ("Arial", 24))
+                self.close_Label.grid(row = 5, column = 0, padx = (10, 30), pady = (10, 10), sticky="w")
                 
-                high = round(self.stocks[self.nom]['High'].iloc[self.temps].iloc[0], 2)
-                self.high = ctk.CTkLabel(self, text= high, text_color= "light gray", font = ("Arial", 24))
-                self.high.grid(row = 4, column = 2, padx = (40, 0), pady = (10, 10))
+                self.high = round(self.stocks[self.nom]['High'].iloc[self.temps].iloc[0], 2)
+                self.high_Label = ctk.CTkLabel(self, text= f"{"Haut :":<12}{self.high:<4}", text_color= "light gray", font = ("Arial", 24))
+                self.high_Label.grid(row = 6, column = 0, padx = (10, 30), pady = (10, 10), sticky="w")
                 
-                low = round(self.stocks[self.nom]['Low'].iloc[self.temps].iloc[0], 2)
-                self.low = ctk.CTkLabel(self, text= low, text_color= "light gray", font = ("Arial", 24))
-                self.low.grid(row = 5, column = 2, padx = (40, 0), pady = (10, 10))
+                self.low = round(self.stocks[self.nom]['Low'].iloc[self.temps].iloc[0], 2)
+                self.low_Label = ctk.CTkLabel(self, text= f"{"Bas :":<12}{self.low:<4}", text_color= "light gray", font = ("Arial", 24))
+                self.low_Label.grid(row = 7, column = 0, padx = (10, 30), pady = (10, 10), sticky="w")
 
-                volume = round(self.stocks[self.nom]['Volume'].iloc[self.temps].iloc[0], 2)
-                self.volume = ctk.CTkLabel(self, text= volume, text_color= "light gray", font = ("Arial", 24))
-                self.volume.grid(row = 6, column = 2, padx = (30, 0), pady = (10, 10))
+                self.volume = round(self.stocks[self.nom]['Volume'].iloc[self.temps].iloc[0], 2)
+                self.volume_Label = ctk.CTkLabel(self, text= f"{"Volume :":<12}{self.volume:<4}", text_color= "light gray", font = ("Arial", 24))
+                self.volume_Label.grid(row = 4, column = 1, padx = (30, 30), pady = (10, 10), sticky="w")
                 
-                pourcentage = round((close - open)/open * 100, 2)
-                self.pourcentage = ctk.CTkLabel(self, text= f"{pourcentage} %", text_color= "light gray", font = ("Arial", 24))
-                self.pourcentage.grid(row = 7, column = 2, padx = (40, 0), pady = (10, 10))
+                self.pourcentage = round((self.close - self.open)/self.open * 100, 2)
+                self.pourcentage_Label = ctk.CTkLabel(self, text= f"{"Pourcentage :":<15}{self.pourcentage:<4}%", text_color= "light gray", font = ("Arial", 24))
+                self.pourcentage_Label.grid(row = 5, column = 1, padx = (30, 30), pady = (10, 10), sticky="w")
 
-                variation = round((close - open), 2)
-                self.variation = ctk.CTkLabel(self, text= variation, text_color= "light gray", font = ("Arial", 24))
-                self.variation.grid(row = 8, column = 2, padx = (40, 0), pady = (10, 10))
-
-                i += 1   
+                self.variation = round((self.close - self.open), 2)
+                self.variation_Label = ctk.CTkLabel(self, text= f"{"Variation :":<15}{self.variation:<4}", text_color= "light gray", font = ("Arial", 24))
+                self.variation_Label.grid(row = 6, column = 1, padx = (30, 30), pady = (10, 10), sticky="w")
+  
 
             self.date = ctk.CTkLabel(self, text=self.stocks[stock]. index[self.temps].date(), text_color= "light gray", font=("Arial", 24))
-            self.date.grid(row=0, column=3, padx = (0, 10), pady=(10,10))
+            self.date.grid(row=0, column=2, padx = (100, 100), pady=(5,10), sticky="e")
             self.temps += 1
             self.boucle_id = self.after(5000, lambda: self.boucle_stock())
 

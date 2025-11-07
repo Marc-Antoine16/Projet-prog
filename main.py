@@ -25,7 +25,7 @@ class MainApp(ctk.CTk):
             "NVDA" : yf.download("NVDA", start="2024-01-01", end=f"{self.date}", interval="1d")
         }
         self.protocol("WM_DELETE_WINDOW", self.quit)
-        self.show_login()
+        self.show_watchlist()
 
     def show_watchlist(self):
         self.current_page = Watchlist(master=self,stocks=self.stocks, temps= 1)
