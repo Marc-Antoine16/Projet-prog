@@ -4,6 +4,7 @@ import time
 import yfinance as yf
 import webbrowser
 from gnews import GNews
+import threading
 
 class Info(ctk.CTkFrame):
     def __init__(self, master = None, stocks = None, nom = None, temps = None, compte = None):
@@ -16,8 +17,31 @@ class Info(ctk.CTkFrame):
         self.compte = compte
         self.nbColonnes = 3
         self.nbLignes = 8
-        # self.nouvelles = pd.DataFrame(self.stock.news[:5])[["title", "publisher", "link"]]
         self.create_widgets()
+    
+    def fetch_data(self):
+        google_news = GNews(language='fr', country='CA', period='7d')
+        nom_recherche = self.stock.info.get("longName", self.nom)
+        self.nouvelles = google_news.get_news(nom_recherche)
+        self.master.after(0, self.charger_nouvelles)
+
+    def charger_nouvelles(self):
+        self.nouvelles_label.destroy()
+        if not self.nouvelles:
+            aucun_label = ctk.CTkLabel(self, text="Aucune nouvelle récente disponible.", font=("Arial", 18))
+            aucun_label.grid(row=4, column=2, padx=(30, 100), pady=20, sticky="w")
+        else:
+            i = 4
+            for nouvelle in self.nouvelles[:5]:
+                titre = nouvelle['title']
+                lien = nouvelle['url']
+                source = nouvelle.get('publisher', {}).get('title', 'Source inconnue')
+
+                self.nouvelle_label = ctk.CTkLabel(self, text=f"• {titre}\n({source})", text_color="#1E90FF", cursor="hand2", font=("Arial", 20), justify="left", wraplength=600)
+                self.nouvelle_label.grid(row=i, column=2, padx=30, pady=(5, 10), sticky="w")
+                self.nouvelle_label.bind("<Button-1>", lambda e, url=lien: webbrowser.open(url))
+
+                i += 1
 
     def create_widgets(self):
         self.grid(row=0, column=0, padx=50, pady=50, sticky="nsew")
@@ -49,25 +73,10 @@ class Info(ctk.CTkFrame):
         self.ligne2 = ctk.CTkFrame(self, height=2, width=300, fg_color="gray")
         self.ligne2.grid(row=3, column=0, columnspan=3, pady=10, sticky="ew")
 
-        google_news = GNews(language='fr', country='CA', period='7d')
-        nom_recherche = self.stock.info.get("longName", self.nom)
-        nouvelles = google_news.get_news(nom_recherche)
+        self.nouvelles_label = ctk.CTkLabel(self, text="Chargement des nouvelles...", font=("Arial", 18))
+        self.nouvelles_label.grid(row=4, column=2, padx=(30, 100), pady=20, sticky="w")
 
-        if not nouvelles:
-            aucun_label = ctk.CTkLabel(self, text="Aucune nouvelle récente disponible.", font=("Arial", 18))
-            aucun_label.grid(row=4, column=2, padx=(30, 100), pady=20, sticky="w")
-        else:
-            i = 4
-            for nouvelle in nouvelles[:5]:
-                titre = nouvelle['title']
-                lien = nouvelle['url']
-                source = nouvelle.get('publisher', {}).get('title', 'Source inconnue')
-
-                self.nouvelle_label = ctk.CTkLabel(self, text=f"• {titre}\n({source})", text_color="#1E90FF", cursor="hand2", font=("Arial", 20), justify="left", wraplength=600)
-                self.nouvelle_label.grid(row=i, column=2, padx=30, pady=(5, 10), sticky="w")
-                self.nouvelle_label.bind("<Button-1>", lambda e, url=lien: webbrowser.open(url))
-
-                i += 1
+        threading.Thread(target=self.fetch_data, daemon=True).start()
 
         self.boucle_stock()
 
