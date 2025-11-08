@@ -50,7 +50,8 @@ class Info(ctk.CTkFrame):
         self.ligne2.grid(row=3, column=0, columnspan=3, pady=10, sticky="ew")
 
         google_news = GNews(language='fr', country='CA', period='7d')
-        nouvelles = google_news.get_news(self.nom)
+        nom_recherche = self.stock.info.get("longName", self.nom)
+        nouvelles = google_news.get_news(nom_recherche)
 
         if not nouvelles:
             aucun_label = ctk.CTkLabel(self, text="Aucune nouvelle récente disponible.", font=("Arial", 18))
