@@ -22,7 +22,8 @@ class MainApp(ctk.CTk):
         self.stocks = {
             "TSLA" : yf.download("TSLA", start="2024-01-01", end=f"{self.date}", interval="1d"),
             "AAPL" : yf.download("AAPL", start="2024-01-01", end=f"{self.date}", interval="1d"),
-            "NVDA" : yf.download("NVDA", start="2024-01-01", end=f"{self.date}", interval="1d")
+            "NVDA" : yf.download("NVDA", start="2024-01-01", end=f"{self.date}", interval="1d"),
+            "MSFT" : yf.download("MSFT", start="2024-01-01", end=f"{self.date}", interval="1d")
         }
         self.protocol("WM_DELETE_WINDOW", self.quit)
         self.show_watchlist()

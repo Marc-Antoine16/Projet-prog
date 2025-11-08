@@ -1,6 +1,9 @@
 import customtkinter as ctk
+import pandas as pd
 import time
 import yfinance as yf
+import webbrowser
+from gnews import GNews
 
 class Info(ctk.CTkFrame):
     def __init__(self, master = None, stocks = None, nom = None, temps = None, compte = None):
@@ -13,6 +16,7 @@ class Info(ctk.CTkFrame):
         self.compte = compte
         self.nbColonnes = 3
         self.nbLignes = 8
+        # self.nouvelles = pd.DataFrame(self.stock.news[:5])[["title", "publisher", "link"]]
         self.create_widgets()
 
     def create_widgets(self):
@@ -22,7 +26,7 @@ class Info(ctk.CTkFrame):
             self.master.grid_columnconfigure(i, weight= 1)
         
         for i in range(self.nbLignes):
-            self.master.grid_rowconfigure(0, weight= 1)
+            self.master.grid_rowconfigure(i, weight= 1)
 
         self.watchlist_button = ctk.CTkButton(self, text="retour", fg_color = "transparent", hover_color= "light gray", border_width=2, border_color="white",  font=("Arial", 30, "bold"), command= self.retour)
         self.watchlist_button.grid(row=0, column=0, padx = (0, 0), pady = (5,20), sticky="w")
@@ -44,6 +48,25 @@ class Info(ctk.CTkFrame):
 
         self.ligne2 = ctk.CTkFrame(self, height=2, width=300, fg_color="gray")
         self.ligne2.grid(row=3, column=0, columnspan=3, pady=10, sticky="ew")
+
+        google_news = GNews(language='fr', country='CA', period='7d')
+        nouvelles = google_news.get_news(self.nom)
+
+        if not nouvelles:
+            aucun_label = ctk.CTkLabel(self, text="Aucune nouvelle récente disponible.", font=("Arial", 18))
+            aucun_label.grid(row=4, column=2, padx=(30, 100), pady=20, sticky="w")
+        else:
+            i = 4
+            for nouvelle in nouvelles[:5]:
+                titre = nouvelle['title']
+                lien = nouvelle['url']
+                source = nouvelle.get('publisher', {}).get('title', 'Source inconnue')
+
+                self.nouvelle_label = ctk.CTkLabel(self, text=f"• {titre}\n({source})", text_color="#1E90FF", cursor="hand2", font=("Arial", 20), justify="left", wraplength=600)
+                self.nouvelle_label.grid(row=i, column=2, padx=30, pady=(5, 10), sticky="w")
+                self.nouvelle_label.bind("<Button-1>", lambda e, url=lien: webbrowser.open(url))
+
+                i += 1
 
         self.boucle_stock()
 
