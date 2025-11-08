@@ -25,17 +25,22 @@ class Watchlist(ctk.CTkFrame):
         self.master.grid_rowconfigure(0, weight= 1)
         self.master.grid_columnconfigure(0, weight= 1)
 
+        # Le frame a plusieurs colonnes extensibles
+        self.grid_rowconfigure((0, 1, 2,4,5,6,7,8,9,10), weight=1)
+        self.grid_columnconfigure((0, 1, 2, 3, 4, 5,6,7,8,9,10), weight=1)
+
         self.titre_label = ctk.CTkLabel(self, text="Watchlist", font=("Arial", 30, "bold"))
-        self.titre_label.grid(row=0, column=0, pady=(10,10))
+        self.titre_label.grid(row=0, column=1, pady=(10,10))
 
         self.dropdown = ctk.CTkOptionMenu(self,values=self.options_with_placeholder, command=self.option_changed)
         self.dropdown.set("Ajouter...")
-        self.dropdown.grid(row=0, column=4, pady=(10,10))
+        self.dropdown.grid(row=0, column=6, pady=(10,10))
 
-        
         self.bouton_compte = ctk.CTkButton(self, text = "Compte", fg_color="transparent", hover_color="red", font=("Arial", 24), command = self.ouvrir_compte)
         self.bouton_compte.grid(row = 7, column = 0, pady = (10,10))
 
+        self.btn_retour = ctk.CTkButton(self, text="Retour",fg_color="transparent",hover_color="light green",font=("Arial", 24, "bold"),command=self.aller_A_accueil)
+        self.btn_retour.grid(row=0, column=0, pady=(0, 0))
 
         i = 1
         for stock in self.stocks:
@@ -50,8 +55,6 @@ class Watchlist(ctk.CTkFrame):
 
             self.bouton_achat = ctk.CTkButton(self, text="Acheter", fg_color="transparent", hover_color="green", font=("Arial", 24), width=80, height=60 , command = lambda a = stock: self.acheter_stock(a))
             self.bouton_achat.grid(row = i, column = 4, pady = (10, 10))
-
-            
 
             i += 1      
 
@@ -175,6 +178,7 @@ class Watchlist(ctk.CTkFrame):
         btn_achat = ctk.CTkButton(self, text="Acheter", fg_color="transparent", hover_color="green",font=("Arial", 24), width=80, height=60, command=lambda s=value: self.acheter_stock(s))
         btn_achat.grid(row=i, column=4, pady=(10,10))
 
+
         prix = round(float(df["Close"].iloc[self.temps]), 2)
         self.prix_buttons[value] = ctk.CTkButton(self, text=str(prix), fg_color="transparent", hover_color="lightpink",font=("Arial", 24, "bold"), command=lambda s=value: self.onButtonClicked(s))
         self.prix_buttons[value].grid(row=i, column=1, pady=(10,10))
@@ -260,3 +264,13 @@ class Watchlist(ctk.CTkFrame):
 
         self.clear_main_frame()
         self.create_widgets()
+    
+    def show_accueil(self):
+        from accueil import Accueil
+        self.clear_main_frame()
+        self.destroy()
+        self.current_page = Accueil(master=self.master) #Parent
+        self.current_page.grid(row=0, column=0, sticky="nsew")
+
+    def aller_A_accueil(self):
+        self.show_accueil()
