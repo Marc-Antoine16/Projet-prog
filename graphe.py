@@ -20,8 +20,9 @@ class Graph(ctk.CTkFrame):
     def create_widgets(self):
         self.grid(row=0, column=0, padx=50, pady=50, sticky="nsew")
 
-        self.master.grid_rowconfigure(0, weight=1)
-        self.master.grid_columnconfigure(0, weight=1)
+        for i in range(5):
+            self.master.grid_rowconfigure(i, weight=1)
+            self.master.grid_columnconfigure(i, weight=1)
 
         #Graphique initiale
         self.fig, self.ax = plt.subplots(figsize=(9, 6))
@@ -59,7 +60,6 @@ class Graph(ctk.CTkFrame):
         # Affiche le graphique par défaut
         self.afficher_periode("1A")
 
-
     def afficher_periode(self, periode):
         data = self.stocks[self.nom]
         if len(data) < 2:
@@ -78,55 +78,49 @@ class Graph(ctk.CTkFrame):
 
 
     def redessiner_graphique(self, df, periode):
+
         self.ax.clear()
 
-        self.ax.set_facecolor("black")
-        for spine in self.ax.spines.values():
-            spine.set_color("white")
-        self.ax.tick_params(axis='x', colors='white')
-        self.ax.tick_params(axis='y', colors='white')
-        self.ax.xaxis.label.set_color('white')
-        self.ax.yaxis.label.set_color('white')
-        self.ax.title.set_color('white')
+        df = df.copy()
+
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+
+        df.index = pd.to_datetime(df.index)
+
+        df = df.dropna(subset=['Open','High','Low','Close'])
+
+        for col in ['Open','High','Low','Close']:
+            df[col] = df[col].astype(float)
+
+        style_graphique = mpf.make_mpf_style(
+            base_mpf_style='charles',
+            rc={
+                'axes.facecolor': 'black',
+                'axes.edgecolor': 'white',
+                'xtick.color': 'white',
+                'ytick.color': 'white',
+                'figure.facecolor': 'black',
+                'grid.color': 'gray'
+            }
+        )
+
+        mpf.plot(
+            df,
+            type='candle',
+            ax=self.ax,
+            volume=False,
+            style=style_graphique,
+            show_nontrading=False
+        )
+
+        self.ax.set_title(f"{self.nom} - Période : {periode}", color="white", fontsize=30)
         self.ax.grid(False)
 
-        x = df.index
-        y = df["Close"]
-
-        # Petite fonction pour convertir correctement les valeurs sinon erreur
-        def to_float(v):
-            if hasattr(v, "iloc"): #sert à vérifier si un objet possède un attribut
-                return float(v.iloc[0])
-            return float(v)
-
-        # Tracé coloré vert/rouge
-        line_segments = []
-        for i in range(1, len(x)): #par segment
-            prev_val = to_float(y.iloc[i - 1])
-            curr_val = to_float(y.iloc[i])
-            if curr_val > prev_val:
-                color = "green"
-            else:
-                color="red"
-
-            (l,) = self.ax.plot(x[i - 1:i + 1], [prev_val, curr_val], color=color, linewidth=2) #trace petit segment de courbe entre x[i-1] et x[i]
-            line_segments.append(l)
-
-    
-        #Curseur interactif
-        cursor = mplcursors.cursor(line_segments, hover=True)
-        price_text = self.ax.text(0.05, 0.90, "",transform=self.ax.transAxes,ha='left', va='top',fontsize=20, color='lightgray')
-
-        @cursor.connect("add")
-        def on_add(sel):
-            sel.annotation.set_visible(False)
-            price_text.set_text(f"Prix : {sel.target[1]:.2f}")
-            self.canvas.draw_idle()
+        self.ax.xaxis.set_major_locator(plt.MaxNLocator(10))
+        self.fig.autofmt_xdate(rotation=45)
 
         self.canvas.draw_idle()
-
-
-        
 
     def clear_main_frame(self):
         for widget in self.winfo_children():
