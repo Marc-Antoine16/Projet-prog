@@ -6,18 +6,21 @@ from compte import Compte
 import pandas as pd
 import time
 from PIL import Image
+from user import User
 
 class Watchlist(ctk.CTkFrame):
-    def __init__(self, master=None, stocks=None, temps = None, compte = None):
+    def __init__(self, master=None, stocks=None, temps = None, compte = None, user = None):
         super().__init__(master)
         self.master = master
         self.stocks = stocks
         self.temps = temps
         self.compte = compte
+        self.user = user
         self.options = pd.read_csv("https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv")["Symbol"].tolist()
         self.options_with_placeholder = ["Ajouter..."] + self.options
         self.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         self.create_widgets()
+        print("DEBUG — utilisateur reçu :", type(self.compte), getattr(self.compte, "username", None))
 
     def create_widgets(self):
         self.master.grid_rowconfigure(0, weight= 1)
@@ -27,7 +30,7 @@ class Watchlist(ctk.CTkFrame):
         self.titre_label.grid(row=0, column=0, pady=(10,10))
 
         self.bouton_compte = ctk.CTkButton(self, text = "Deconnexion", fg_color="transparent", hover_color="red", font=("Arial", 24), command= lambda : self.logout())
-        self.bouton_compte.grid(row = 8, column = 0, pady = (10,10))
+        self.bouton_compte.grid(row = 8 , column = 0, pady = (10,10))
 
         self.dropdown = ctk.CTkOptionMenu(self,values=self.options_with_placeholder, command=self.option_changed)
         self.dropdown.set("Ajouter...")
@@ -166,6 +169,9 @@ class Watchlist(ctk.CTkFrame):
         df["Close"] = df["Close"].astype(float)
         self.stocks[value] = df
 
+
+        self.user.add_stock(value) # utilise la méthode add_stock de l'utilisateur pour ajouter un aciton 
+
         # Ajouter uniquement les widgets pour ce stock
         i = len(self.stocks)  
 
@@ -209,10 +215,11 @@ class Watchlist(ctk.CTkFrame):
 
     def ouvrir_compte(self):
         actions = self.compte.action if self.compte is not None else {}
-        argent = self.compte.argent if self.compte is not None else 1000
+        argent = self.user.balance
+
+        
 
         self.clear_main_frame()
-
         from compte import Compte
         self.compte = Compte(self.master, self.stocks, self.temps, action=actions, argent = argent)
 
@@ -243,7 +250,8 @@ class Watchlist(ctk.CTkFrame):
                                     fg_color="dark gray", font=("Arial", 20))
             self.label.grid(row=3, column=3, padx=(20, 20), pady=(20, 20))
             self.after(3000, self.label.destroy)
-    
+
+       
 
     def supprime_stock(self, nom):
         if hasattr(self, "boucle_id"):
@@ -254,6 +262,7 @@ class Watchlist(ctk.CTkFrame):
 
         if nom in self.stocks:
             del self.stocks[nom]
+            self.user.remove_stock(nom)
 
         if hasattr(self, "prix_buttons"):
             self.prix_buttons.clear()

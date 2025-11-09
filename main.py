@@ -17,11 +17,7 @@ class MainApp(ctk.CTk):
         ctk.set_appearance_mode("Dark")      
         self.geometry(APP_GEOMETRY)
         self.title(APP_TITLE)
-        self.stocks = {
-            "TSLA" : yf.download("TSLA", start="2024-01-01", end="2025-10-11", interval="1d"),
-            "AAPL" : yf.download("AAPL", start="2024-01-01", end="2025-10-11", interval="1d"),
-            "NVDA" : yf.download("NVDA", start="2024-01-01", end="2025-10-11", interval="1d")
-        }
+        self.stocks = {}
         self.protocol("WM_DELETE_WINDOW", self.quit)
         self.show_login()
 

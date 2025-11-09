@@ -1,1 +1,23 @@
-{"admin": "1234", "gab": "1234", "marc": "gab", "zack": "1234", "gab87": "987", "lt": "beau", "george": "456", "LTP": "bolle", "hdbdb": "dhfhddh"}
+[
+    {
+        "username": "gab",
+        "password": "1234",
+        "balance": 10000,
+        "stocks_owned": [
+            "ABBV",
+            "AMD",
+            "AKAM",
+            "ADBE"
+        ]
+    },
+    {
+        "username": "marc",
+        "password": "beau",
+        "balance": 5000,
+        "stocks_owned": [
+            "AOS",
+            "AMD",
+            "AFL"
+        ]
+    }
+]
