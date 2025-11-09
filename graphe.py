@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import mplcursors
 import pandas as pd
+import mplfinance as mpf
 
 
 class Graph(ctk.CTkFrame):

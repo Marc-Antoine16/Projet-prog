@@ -20,12 +20,16 @@ class Info(ctk.CTkFrame):
         self.create_widgets()
     
     def fetch_data(self):
+
+        # fonction qui vas chercher les donnés, mais qui peut actualiser la page en même temps
         google_news = GNews(language='fr', country='CA', period='7d')
         nom_recherche = self.stock.info.get("longName", self.nom)
         self.nouvelles = google_news.get_news(nom_recherche)
         self.master.after(0, self.charger_nouvelles)
 
     def charger_nouvelles(self):
+
+        # écrire les nouvelles
         self.nouvelles_label.destroy()
         if not self.nouvelles:
             aucun_label = ctk.CTkLabel(self, text="Aucune nouvelle récente disponible.", font=("Arial", 18))
@@ -44,6 +48,8 @@ class Info(ctk.CTkFrame):
                 i += 1
 
     def create_widgets(self):
+
+        # création des widgets
         self.grid(row=0, column=0, padx=50, pady=50, sticky="nsew")
 
         for i in range(self.nbColonnes):
@@ -76,14 +82,18 @@ class Info(ctk.CTkFrame):
         self.nouvelles_label = ctk.CTkLabel(self, text="Chargement des nouvelles...", font=("Arial", 18))
         self.nouvelles_label.grid(row=4, column=2, padx=(30, 100), pady=20, sticky="w")
 
+        # Active le threading (chercher le nouvelles et mettre le label de chargement)
         threading.Thread(target=self.fetch_data, daemon=True).start()
 
         self.boucle_stock()
 
     def boucle_stock(self):
+
+        # si le temps se rends jusqu'à aujourd'hui, il retournes à la première date
         if self.temps == len(self.stocks[next(iter(self.stocks))]['Close']):
             self.temps = 1
         
+        # éfface les derniers widgets
         else:
             for widget in self.winfo_children():
                     info = widget.grid_info()
@@ -92,6 +102,7 @@ class Info(ctk.CTkFrame):
                     if (col == 2 and row == 0) or (col == (0 or 1) and row >= 4):
                         widget.destroy()
 
+            # Update tous les widgets avec les nouvelles donnés
             for stock in self.stocks:
 
                 self.open = round(self.stocks[self.nom]['Open'].iloc[self.temps].iloc[0], 2)
@@ -121,7 +132,6 @@ class Info(ctk.CTkFrame):
                 self.variation = round((self.close - self.open), 2)
                 self.variation_Label = ctk.CTkLabel(self, text= f"{"Variation :":<15}{self.variation:<4}", text_color= "light gray", font = ("Arial", 24))
                 self.variation_Label.grid(row = 6, column = 1, padx = (30, 30), pady = (10, 10), sticky="w")
-  
 
             self.date = ctk.CTkLabel(self, text=self.stocks[stock]. index[self.temps].date(), text_color= "light gray", font=("Arial", 24))
             self.date.grid(row=0, column=2, padx = (100, 100), pady=(5,10), sticky="e")
