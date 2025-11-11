@@ -77,14 +77,25 @@ class Watchlist(ctk.CTkFrame):
 
         self.boucle_stock()
 
+
+
     def boucle_stock(self):
+        #Met à jour en boucle les prix et rendements de la Watchlist
+
+
+        #Si la fenêtre a été détruite, on arrête
+        if not self.winfo_exists():
+            return
+
+        # Si aucun stock, afficher un message et continuer doucement
         if not self.stocks:
             if self.date_label is not None:
                 self.date_label.configure(text="Aucun stock")
-            self.temps += 1  # le temps continue quand même
+            self.temps += 1
             self.boucle_id = self.after(5000, self.boucle_stock)
             return
-        #Initialisation des dictionnaires de widgets si pas fait
+
+        #Initialisation des structures
         if not hasattr(self, "prix_buttons"):
             self.prix_buttons = {}
         if not hasattr(self, "rendement_labels"):
@@ -92,60 +103,81 @@ class Watchlist(ctk.CTkFrame):
         if not hasattr(self, "date_label"):
             self.date_label = None
 
-        #Reset du temps si dépasse le nombre de jours
-        if self.temps >= len(self.stocks[next(iter(self.stocks))]['Close']):
-            self.temps = 0
+        #Sécurité : si temps dépasse la longueur, on remet à zéro
+        try:
+            premier_stock = next(iter(self.stocks))
+            if self.temps >= len(self.stocks[premier_stock]["Close"]):
+                self.temps = 0
+        except Exception:
+            return
 
+        #Mise à jour des prix et rendements
         for i, stock in enumerate(self.stocks, start=1):
-            data = self.stocks[stock]
-            y = data["Close"]
+            try:
+                data = self.stocks[stock]
+                y = data["Close"]
+                prix = round(float(y.iloc[self.temps].item()), 2)
+                textePrix = str(prix)
 
-            prix = round(float(y.iloc[self.temps].item()), 2)
-            textePrix=str(prix) #evite le chargement
+                # --- Prix ---
+                if stock not in self.prix_buttons or not self.prix_buttons[stock].winfo_exists():
+                    self.prix_buttons[stock] = ctk.CTkButton(
+                        self, text=textePrix, fg_color="transparent", hover_color="lightpink",
+                        font=("Arial", 24, "bold"), command=lambda s=stock: self.onButtonClicked(s)
+                    )
+                    self.prix_buttons[stock].grid(row=i, column=1, pady=(10, 10))
+                else:
+                    self.prix_buttons[stock].configure(text=str(prix))
 
-            if stock not in self.prix_buttons:
-                self.prix_buttons[stock] = ctk.CTkButton(self,text=textePrix, fg_color="transparent", hover_color="lightpink",font=("Arial", 24, "bold"),command=lambda s=stock: self.onButtonClicked(s) )
-                self.prix_buttons[stock].grid(row=i, column=1, pady=(10,10))
+                # Rendement
+                if self.temps >= 1:
+                    dernier = float(y.iloc[self.temps].item())
+                    avant_dernier = float(y.iloc[self.temps - 1].item())
+                    variation = dernier - avant_dernier
+                    pourcentage = (variation / avant_dernier) * 100
+                else:
+                    variation = 0.0
+                    pourcentage = 0.0
+
+                signe = "+" if variation >= 0 else "-"
+                couleur = "green" if variation >= 0 else "red"
+                variation = abs(round(variation, 2))
+                pourcentage = abs(round(pourcentage, 2))
+
+                texte_rendement = f"{signe}{variation} $ ({signe}{pourcentage}%) la dernière journée."
+
+                if stock not in self.rendement_labels or not self.rendement_labels[stock].winfo_exists():
+                    self.rendement_labels[stock] = ctk.CTkLabel(
+                        self, text=texte_rendement, text_color=couleur, font=("Arial", 14)
+                    )
+                    self.rendement_labels[stock].grid(row=i, column=3, pady=(10, 10))
+                else:
+                    self.rendement_labels[stock].configure(
+                        text=texte_rendement, text_color=couleur, font=("Arial", 14)
+                    )
+
+            except Exception as e:
+                print(f"Erreur dans boucle_stock pour {stock} : {e}")
+                continue
+
+        # Affichage de la date
+        try:
+            date_text = self.stocks[premier_stock].index[self.temps].date()
+            if self.date_label is None or not self.date_label.winfo_exists():
+                self.date_label = ctk.CTkLabel(self, text=date_text, text_color="light gray", font=("Arial", 24))
+                self.date_label.grid(row=0, column=3, padx=(0, 10), pady=(10, 10))
             else:
-                self.prix_buttons[stock].configure(text=str(prix))
+                self.date_label.configure(text=date_text)
+        except Exception:
+            pass
 
-            if self.temps >= 1:  #au moins deux jours
-                dernier = float(y.iloc[self.temps].item())
-                avant_dernier = float(y.iloc[self.temps - 1].item())
-                variation = dernier - avant_dernier
-                pourcentage = (variation / avant_dernier) * 100
-            else:
-                variation = 0.0
-                pourcentage = 0.0
+        #Planifie la prochaine mise à jour
+        if self.winfo_exists():
+            self.temps += 1
+            self.boucle_id = self.after(5000, self.boucle_stock)
 
-            if variation >= 0:
-                signe = "+"
-                couleur = "green"
-            else:
-                signe="-"
-                couleur="red"
 
-            variation = abs(round(variation, 2))
-            pourcentage = abs(round(pourcentage, 2))
-
-            texte_rendement = f"{signe}{variation} $ ({signe}{pourcentage}%) la dernière journée."
-
-            if stock not in self.rendement_labels:
-                self.rendement_labels[stock] = ctk.CTkLabel(self,text=texte_rendement, text_color=couleur, font=("Arial", 14))
-                self.rendement_labels[stock].grid(row=i, column=3, pady=(10,10))
-            else:
-                self.rendement_labels[stock].configure(text=f"{signe}{variation} $ ({signe}{pourcentage}%) la dernière journée.",text_color=couleur,  font=("Arial", 14))
-
-        date_text = self.stocks[next(iter(self.stocks))].index[self.temps].date()
-
-        if self.date_label is None:
-            self.date_label = ctk.CTkLabel(self,text=date_text,text_color="light gray",font=("Arial", 24))
-            self.date_label.grid(row=0, column=3, padx=(0,10), pady=(10,10))
-        else:
-            self.date_label.configure(text=date_text)
-
-        self.temps += 1
-        self.boucle_id = self.after(5000, self.boucle_stock)
+    
 
     def clear_main_frame(self):
         if hasattr(self, "boucle_id"):
@@ -228,11 +260,12 @@ class Watchlist(ctk.CTkFrame):
     def ouvrir_compte(self):
         actions = self.compte.action if self.compte is not None else {}
         argent = self.compte.argent if self.compte is not None else 1000
+        nom_compte = getattr(self.compte, "nom", "compte inconnu")  #récupère le nom existant ou une valeur par défaut
 
         self.clear_main_frame()
 
         from compte import Compte
-        self.compte = Compte(self.master, self.stocks, self.temps, action=actions, argent = argent)
+        self.compte = Compte(self.master, self.stocks, self.temps, action=actions, argent = argent, nom= nom_compte)
 
         self.compte.create_widgets()
 
@@ -241,7 +274,9 @@ class Watchlist(ctk.CTkFrame):
 
         if self.compte is None:
             from compte import Compte
-            self.compte = Compte(self.master, self.stocks, self.temps, action={}, argent=1000)
+            self.compte = Compte(self.master, self.stocks, self.temps, action={}, argent=1000,nom="Inconnu")
+
+        nom_compte = getattr(self.compte, "nom", "Inconnu") #si le compte a deja un nom, on le garde
 
         if self.compte.argent >= prix_achat:
             self.compte.argent -= prix_achat
@@ -252,16 +287,14 @@ class Watchlist(ctk.CTkFrame):
 
                 nouveau_prix_moyen = ((ancien_prix * ancienne_quantite) + prix_achat) / (ancienne_quantite + 1)
                 self.compte.action[action]["quantite"] += 1
+                self.compte.action[action]["prix_achat"]=round(nouveau_prix_moyen,2)
 
             else:
                 self.compte.action[action] = {"data": self.stocks[action], "prix_achat": prix_achat, "quantite": 1}
 
+            self.compte.nom =nom_compte #s'assurer que le compte garde son nom
             self.compte.sauvegarder()
-        else:
-            self.label = ctk.CTkLabel(self, text="Pas assez de fonds pour acheter cette action",
-                                    fg_color="dark gray", font=("Arial", 20))
-            self.label.grid(row=3, column=3, padx=(20, 20), pady=(20, 20))
-            self.after(3000, self.label.destroy)
+            print(f" {action} achetée dans le compte {self.compte.nom}")
     
 
     def supprime_stock(self, nom):

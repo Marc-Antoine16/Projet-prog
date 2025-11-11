@@ -118,7 +118,7 @@ class Accueil(ctk.CTkFrame):
                 print(f"[ERREUR] lors du chargement de l'action {symbole} :", e)
 
         #Crée le Compte 
-        compte = Compte(master=self.master,stocks=watchlist_data,temps=1,action=actions_data,argent=compte_data.get("montant", 0))
+        compte = Compte(master=self.master,stocks=watchlist_data,temps=1,action=actions_data,argent=compte_data.get("montant", 0), nom=compte_data.get("nom","Inconnu"))
         setattr(compte, "nom", compte_data.get("nom", "Inconnu"))
 
         #Ouvre la Watchlist liée à ce compte ---
