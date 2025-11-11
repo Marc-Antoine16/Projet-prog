@@ -6,13 +6,14 @@ import pandas as pd
 
 
 class Graph(ctk.CTkFrame):
-    def __init__(self, master=None, stocks = None, nom = None, temps = None, compte = None):
+    def __init__(self, master=None, stocks = None, nom = None, temps = None, compte = None, user= None):
         super().__init__(master)
         self.master = master
         self.stocks = stocks
         self.nom = nom
         self.temps = temps
         self.compte = compte
+        self.user=user
         self.create_widgets()
 
 
@@ -134,4 +135,4 @@ class Graph(ctk.CTkFrame):
     def retour(self):
         from watchlist import Watchlist
         self.clear_main_frame()
-        Watchlist(self.master, self.stocks, self.temps, self.compte)
+        Watchlist(master=self.master, stocks=self.stocks,temps=self.temps,compte=None,user=self.user) 

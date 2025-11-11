@@ -149,7 +149,7 @@ class Watchlist(ctk.CTkFrame):
 
     def ouvrir_graph(self, name):
         self.clear_main_frame()
-        Graph(self.master, self.stocks, name, self.temps, self.compte)
+        Graph(self.master, self.stocks, name, self.temps, self.compte, self.user)
     
     def logout(self):
         self.clear_main_frame()
@@ -164,13 +164,16 @@ class Watchlist(ctk.CTkFrame):
         if value in self.stocks:  # déjà dans la watchlist
             return
         
-        df = yf.download(value, start="2024-01-01", end="2025-10-11", interval="1d")
-
-        df["Close"] = df["Close"].astype(float)
-        self.stocks[value] = df
-
+        try:
+            df = yf.download(value, start="2024-01-01", end="2025-10-11", interval="1d")
+            df["Close"] = df["Close"].astype(float)
+            self.stocks[value] = df
+        except Exception as e:
+            print(f"Erreur téléchargement du stock {value} :", e)
+            return
 
         self.user.add_stock(value) # utilise la méthode add_stock de l'utilisateur pour ajouter un aciton 
+
 
         # Ajouter uniquement les widgets pour ce stock
         i = len(self.stocks)  
@@ -212,6 +215,8 @@ class Watchlist(ctk.CTkFrame):
         self.rendement_labels[value] = ctk.CTkLabel(self, text=texte_rendement, text_color=couleur, font=("Arial", 14))
         self.rendement_labels[value].grid(row=i, column=3, pady=(10,10))
 
+        
+
 
     def ouvrir_compte(self):
         actions = self.compte.action if self.compte is not None else {}
@@ -221,11 +226,18 @@ class Watchlist(ctk.CTkFrame):
 
         self.clear_main_frame()
         from compte import Compte
-        self.compte = Compte(self.master, self.stocks, self.temps, action=actions, argent = argent)
+        self.compte = Compte(self.master, self.stocks, self.temps, action=actions, argent = argent, user = self.user)
 
         self.compte.create_widgets()
 
     def acheter_stock(self, action):
+        argent = self.user.balance
+
+        self.clear_main_frame()
+        from acheter import Acheter
+        Acheter( master=self.master, stocks=self.stocks,temps=self.temps,action=action,argent=argent,user=self.user)
+
+        '''
         prix_achat = round(self.stocks[action]["Close"].iloc[self.temps - 1].iloc[0], 2)
 
         if self.compte is None:
@@ -250,6 +262,8 @@ class Watchlist(ctk.CTkFrame):
                                     fg_color="dark gray", font=("Arial", 20))
             self.label.grid(row=3, column=3, padx=(20, 20), pady=(20, 20))
             self.after(3000, self.label.destroy)
+        '''
+        
 
        
 
@@ -262,7 +276,14 @@ class Watchlist(ctk.CTkFrame):
 
         if nom in self.stocks:
             del self.stocks[nom]
-            self.user.remove_stock(nom)
+
+            if hasattr(self, "user") and self.user is not None:
+                try:
+                    self.user.remove_stock(nom)
+                except Exception as e:
+                    print(f"Erreur suppression du stock chez l'utilisateur : {e}")
+            else:
+                print("⚠️ Aucun utilisateur actif — suppression locale seulement")
 
         if hasattr(self, "prix_buttons"):
             self.prix_buttons.clear()
@@ -274,6 +295,6 @@ class Watchlist(ctk.CTkFrame):
             except Exception:
                 pass
             self.date_label = None
-
+            
         self.clear_main_frame()
         self.create_widgets()

@@ -1,13 +1,14 @@
 import customtkinter as ctk
 
 class Compte(ctk.CTkFrame):
-    def __init__(self, master = None, stocks = None, temps = None, action = None, argent = None):
+    def __init__(self, master = None, stocks = None, temps = None, action = None, argent = None, user= None):
         super().__init__(master)
         self.master = master
         self.stocks = stocks
         self.action = action if action is not None else {}
         self.temps = temps
         self.argent = float(argent)
+        self.user = user
 
     def create_widgets(self):
         self.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
@@ -155,4 +156,4 @@ class Compte(ctk.CTkFrame):
         from watchlist import Watchlist
         nouveau_compte = Compte(self.master, self.stocks, self.temps, self.action, self.argent)
         self.clear_main_frame()
-        Watchlist(self.master, self.stocks, self.temps, nouveau_compte)
+        Watchlist(master=self.master, stocks=self.stocks,temps=self.temps,compte=nouveau_compte,user=self.user) 

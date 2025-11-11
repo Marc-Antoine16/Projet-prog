@@ -18,7 +18,7 @@ class User :
     def remove_stock(self, stock) :
 
         if stock in self.stocks_owned : 
-            del self.stocks_owned[stock] 
+            self.stocks_owned.remove(stock)
             self.save_to_json()
     
     def change_balence(self, amount) :

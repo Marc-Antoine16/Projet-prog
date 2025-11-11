@@ -96,8 +96,8 @@ class LoginPage(ctk.CTkFrame):
                     self.stocks[stock] = yf.download(stock, start="2024-01-01", end="2025-10-11", interval="1d")
                     
                 from watchlist import Watchlist
-                Watchlist(master=self.master, stocks=self.stocks, temps=0, compte= None, user = current_user) # ouvre la page principale Watchlist
-    
+                self.watchlist_page =  Watchlist(master=self.master, stocks=self.stocks, temps=0, compte= None, user = current_user) # ouvre la page principale Watchlist
+                
               
 
 
