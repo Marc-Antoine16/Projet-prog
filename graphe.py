@@ -79,20 +79,28 @@ class Graph(ctk.CTkFrame):
 
     def redessiner_graphique(self, df, periode):
 
+        # supprimer le dernier axe
         self.ax.clear()
 
+        # création d'une copie que l'on peut modifier par après
         df = df.copy()
 
+        # vu que le df a plusieurs index, il faut le redivisionner. Sinon ce n'es pas juste la colonne 
+        # prévu que tu vas avoir mais, aussi la date et le nom, etc.
         if isinstance(df.columns, pd.MultiIndex):
             df.columns = df.columns.get_level_values(0)
 
+        # nécéssaire pour le graphique
         df.index = pd.to_datetime(df.index)
 
+        # supprimme les colonnes avec aucune donnés
         df = df.dropna(subset=['Open','High','Low','Close'])
 
+        # vérifier et transformer en float, sinon il y a un bug
         for col in ['Open','High','Low','Close']:
             df[col] = df[col].astype(float)
 
+        # rajouter le style de chandelles avec la librairie matplot finance
         style_graphique = mpf.make_mpf_style(
             base_mpf_style='charles',
             rc={
@@ -105,21 +113,10 @@ class Graph(ctk.CTkFrame):
             }
         )
 
-        mpf.plot(
-            df,
-            type='candle',
-            ax=self.ax,
-            volume=False,
-            style=style_graphique,
-            show_nontrading=False
-        )
+        # plot avec le mpf car nous avons changer le style
+        mpf.plot(df,type='candle',ax=self.ax,volume=False,style=style_graphique,show_nontrading=False)
 
-        self.ax.set_title(f"{self.nom} - Période : {periode}", color="white", fontsize=30)
-        self.ax.grid(False)
-
-        self.ax.xaxis.set_major_locator(plt.MaxNLocator(10))
-        self.fig.autofmt_xdate(rotation=45)
-
+        # dessiner les chandelles
         self.canvas.draw_idle()
 
     def clear_main_frame(self):
