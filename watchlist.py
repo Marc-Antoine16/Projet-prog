@@ -272,11 +272,11 @@ class Watchlist(ctk.CTkFrame):
     def acheter_stock(self, action):
         prix_achat = round(self.stocks[action]["Close"].iloc[self.temps - 1].iloc[0], 2)
 
-        if self.compte is None:
-            from compte import Compte
-            self.compte = Compte(self.master, self.stocks, self.temps, action={}, argent=1000,nom="Inconnu")
-
-        nom_compte = getattr(self.compte, "nom", "Inconnu") #si le compte a deja un nom, on le garde
+        if not self.compte or not getattr(self.compte,"nom",None):
+            print("Erreur aucun compte sélectionné pour acheter.")
+        
+        #récupere nom compte existant
+        nom_compte = self.compte.nom
 
         if self.compte.argent >= prix_achat:
             self.compte.argent -= prix_achat
@@ -292,7 +292,6 @@ class Watchlist(ctk.CTkFrame):
             else:
                 self.compte.action[action] = {"data": self.stocks[action], "prix_achat": prix_achat, "quantite": 1}
 
-            self.compte.nom =nom_compte #s'assurer que le compte garde son nom
             self.compte.sauvegarder()
             print(f" {action} achetée dans le compte {self.compte.nom}")
     

@@ -183,9 +183,9 @@ class Compte(ctk.CTkFrame):
 
     def retour(self):
         from watchlist import Watchlist
-        nouveau_compte = Compte(self.master, self.stocks, self.temps, self.action, self.argent)
+        nouveau_compte = Compte(self.master, self.stocks, self.temps, self.action, self.argent, nom=self.nom)
         self.clear_main_frame()
-        Watchlist(self.master, self.stocks, self.temps, nouveau_compte)
+        Watchlist(self.master, self.stocks, self.temps, compte=nouveau_compte)
 
     def sauvegarder(self):
         """Sauvegarde le compte sans inclure les DataFrames (non sérialisables)."""
