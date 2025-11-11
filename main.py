@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 from watchlist import Watchlist
 from graphe import Graph
-from datetime import date
 from accueil import Accueil
 
 
@@ -17,12 +16,6 @@ class MainApp(ctk.CTk):
         ctk.set_appearance_mode("Dark")      
         self.geometry(APP_GEOMETRY)
         self.title(APP_TITLE)
-        self.date= date.today()
-        self.stocks = {
-            "TSLA" : yf.download("TSLA", start="2024-01-01", end=self.date, interval="1d"),
-            "AAPL" : yf.download("AAPL", start="2024-01-01", end=self.date, interval="1d"),
-            "NVDA" : yf.download("NVDA", start="2024-01-01", end=self.date, interval="1d")
-        }
         self.protocol("WM_DELETE_WINDOW", self.quit)
         #self.show_watchlist()
         self.show_accueil()

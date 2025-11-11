@@ -9,14 +9,31 @@ from PIL import Image
 from datetime import date
 
 class Watchlist(ctk.CTkFrame):
-    def __init__(self, master=None, stocks=None, temps = None, compte = None):
+    def __init__(self, master=None, stocks=None, temps = None, compte = None, options=None):
         super().__init__(master)
         self.master = master
         self.stocks = stocks
-        self.temps = temps
+        self.temps = temps or 0
         self.compte = compte
         self.date = date.today()
-        self.options = pd.read_csv("https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv")["Symbol"].tolist()
+
+        self.date_label = None
+
+        if compte and compte.stocks is not None: #Si le compte existe, on prend sa watchlist  sinon, dict vide
+            self.stocks = compte.stocks or {}
+        else:
+            self.stocks = {}
+
+        if options is None: #Chargement de la liste des symboles S&P500
+                try:
+                    data = pd.read_csv("https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv")
+                    self.options = data["Symbol"].dropna().tolist()
+                except Exception as e:
+                    print("Erreur lors du chargement du CSV :", e)
+                    self.options = []
+        else:
+            self.options = options
+
         self.options_with_placeholder = ["Ajouter..."] + self.options
         self.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         self.create_widgets()
@@ -83,7 +100,7 @@ class Watchlist(ctk.CTkFrame):
             data = self.stocks[stock]
             y = data["Close"]
 
-            prix = round(float(y.iloc[self.temps]), 2)
+            prix = round(float(y.iloc[self.temps].item()), 2)
             textePrix=str(prix) #evite le chargement
 
             if stock not in self.prix_buttons:
@@ -93,8 +110,8 @@ class Watchlist(ctk.CTkFrame):
                 self.prix_buttons[stock].configure(text=str(prix))
 
             if self.temps >= 1:  #au moins deux jours
-                dernier = float(y.iloc[self.temps])
-                avant_dernier = float(y.iloc[self.temps - 1])
+                dernier = float(y.iloc[self.temps].item())
+                avant_dernier = float(y.iloc[self.temps - 1].item())
                 variation = dernier - avant_dernier
                 pourcentage = (variation / avant_dernier) * 100
             else:
@@ -149,58 +166,63 @@ class Watchlist(ctk.CTkFrame):
         self.clear_main_frame()
         Graph(self.master, self.stocks, name, self.temps, self.compte)
 
-    def option_changed(self, value): #ajout nouveau stock, créer widgets sans reconstruire la page pour que les labels de rendement deja existant reste visible et continue de se mettre a jour
-        if value == "Ajouter...":
+    def option_changed(self, value):
+        """Ajoute un nouveau titre à la Watchlist du compte sélectionné."""
+        #Ne rien faire si aucune sélection ou doublon
+        if value == "Ajouter..." or value in self.stocks:
             return
-        
-        if value in self.stocks:  # déjà dans la watchlist
-            return
-        
-        df = yf.download(value, start="2024-01-01", end=self.date, interval="1d")
 
+        #Télécharger les données du nouveau titre
+        try:
+            df = yf.download(value, start="2024-01-01", end=self.date, interval="1d")
+        except Exception as e:
+            print(f"[ERREUR] Téléchargement des données pour {value} : {e}")
+            return
+
+        if df.empty:
+            print(f"[ATTENTION] Aucune donnée trouvée pour {value}")
+            return
+
+        #Convertir les prix en float
         df["Close"] = df["Close"].astype(float)
+
+        #Ajouter le titre à la watchlist locale
         self.stocks[value] = df
 
-        # Ajouter uniquement les widgets pour ce stock
-        i = len(self.stocks)  
-
-       
-        btn_action = ctk.CTkButton(self, text=value, fg_color="transparent", hover_color="lightpink", font=("Arial", 24, "bold"), command=lambda s=value: self.onButtonClicked(s))
-        btn_action.grid(row=i, column=0, pady=(10,10))
+        # Si le compte existe, sauvegarder la nouvelle watchlist
+        if self.compte is not None:
+            self.compte.stocks = self.stocks
+            self.compte.sauvegarder()
+            print(f"{value} ajouté dans la Watchlist du compte {getattr(self.compte, 'nom', 'Inconnu')}")
+        else:
+            print("Aucun compte associé à cette Watchlist (ajout non sauvegardé).")
 
         
-        btn_graph = ctk.CTkButton(self, text="📈", fg_color="transparent", hover_color="orange",font=("Arial", 24), width=60, height=60, command=lambda s=value: self.ouvrir_graph(s))
-        btn_graph.grid(row=i, column=9, pady=(10,10))
 
-        btn_sup = ctk.CTkButton(self, text="❎", fg_color="transparent", hover_color="red",font=("Arial", 24), width=60, height=60, command=lambda s=value: self.supprime_stock(s))
-        btn_sup.grid(row=i, column=10, pady=(10,10))
+        #Stopper la boucle de mise à jour si elle tourne encore
+        if hasattr(self, "boucle_id"):
+            try:
+                self.after_cancel(self.boucle_id)
+            except Exception:
+                pass
 
-        btn_achat = ctk.CTkButton(self, text="Acheter", fg_color="transparent", hover_color="green",font=("Arial", 24), width=80, height=60, command=lambda s=value: self.acheter_stock(s))
-        btn_achat.grid(row=i, column=4, pady=(10,10))
+        # Supprimer les anciens widgets
+        self.clear_main_frame()
+
+        #réinitilaisation
+        self.prix_buttons = {}
+        self.rendement_labels = {}
+        self.date_label = None
+
+        #Recréer les widgets (avec le nouveau titre)
+        self.create_widgets()
+
+        # Relancer la boucle de mise à jour pour afficher immédiatement les prix
+        self.boucle_stock()
+
+        print(f"Affichage mis à jour : {value} visible dans la Watchlist.")
 
 
-        prix = round(float(df["Close"].iloc[self.temps]), 2)
-        self.prix_buttons[value] = ctk.CTkButton(self, text=str(prix), fg_color="transparent", hover_color="lightpink",font=("Arial", 24, "bold"), command=lambda s=value: self.onButtonClicked(s))
-        self.prix_buttons[value].grid(row=i, column=1, pady=(10,10))
-
-        if self.temps >= 1:
-            dernier = float(df["Close"].iloc[self.temps])
-            avant_dernier = float(df["Close"].iloc[self.temps - 1])
-            variation = dernier - avant_dernier
-            pourcentage = (variation / avant_dernier) * 100
-        else:
-            variation = 0
-            pourcentage = 0
-
-        signe = "+" if variation >= 0 else "-"
-        couleur = "green" if variation >= 0 else "red"
-
-        variation = abs(round(variation, 2))
-        pourcentage = abs(round(pourcentage, 2))
-        texte_rendement = f"{signe}{variation} $ ({signe}{pourcentage}% ) la dernière journée."
-
-        self.rendement_labels[value] = ctk.CTkLabel(self, text=texte_rendement, text_color=couleur, font=("Arial", 14))
-        self.rendement_labels[value].grid(row=i, column=3, pady=(10,10))
 
 
     def ouvrir_compte(self):
@@ -234,6 +256,7 @@ class Watchlist(ctk.CTkFrame):
             else:
                 self.compte.action[action] = {"data": self.stocks[action], "prix_achat": prix_achat, "quantite": 1}
 
+            self.compte.sauvegarder()
         else:
             self.label = ctk.CTkLabel(self, text="Pas assez de fonds pour acheter cette action",
                                     fg_color="dark gray", font=("Arial", 20))
@@ -242,28 +265,30 @@ class Watchlist(ctk.CTkFrame):
     
 
     def supprime_stock(self, nom):
+        #Stopper la boucle de mise à jour
         if hasattr(self, "boucle_id"):
             try:
                 self.after_cancel(self.boucle_id)
             except Exception:
                 pass
 
+        #Supprimer le stock du dictionnaire
         if nom in self.stocks:
             del self.stocks[nom]
 
-        if hasattr(self, "prix_buttons"):
-            self.prix_buttons.clear()
-        if hasattr(self, "rendement_labels"):
-            self.rendement_labels.clear()
-        if hasattr(self, "date_label") and self.date_label is not None:
-            try:
-                self.date_label.destroy()
-            except Exception:
-                pass
-            self.date_label = None
+        #Sauvegarder la nouvelle liste
+        if self.compte:
+            self.compte.stocks = self.stocks
+            self.compte.sauvegarder()
+
+        self.prix_buttons = {}
+        self.rendement_labels = {}
+        self.date_label = None
 
         self.clear_main_frame()
         self.create_widgets()
+        self.boucle_stock()
+
     
     def show_accueil(self):
         from accueil import Accueil

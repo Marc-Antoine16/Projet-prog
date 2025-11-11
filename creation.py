@@ -48,7 +48,7 @@ class Creation(ctk.CTkFrame):
             self.erreurMontant.grid(row=1 , column= 1, pady=(10,10))
             return
         
-        compte={"nom" : nom , "montant": montant }
+        compte={"nom" : nom , "montant": montant, "actions":{}, "watchlist": {} }
         if os.path.exists("comptes.json"):
             with open("comptes.json", "r") as f:
                 data = json.load(f)
@@ -60,9 +60,6 @@ class Creation(ctk.CTkFrame):
         with open("comptes.json", "w") as f:
             json.dump(data,f,indent=4)
 
-        msgAide=ctk.CTkLabel(self, text=f"Compte créé ! Appuyer sur votre compte ({nom}) pour commencer à négocier.", text_color="red", font=("Arial", 16))
-        msgAide.grid(row=4,column = 3, pady=(10,10))
-        
         self.clear_main_frame()
         self.show_accueil()
         

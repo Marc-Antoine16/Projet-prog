@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import json, os
 
 class Compte(ctk.CTkFrame):
     def __init__(self, master = None, stocks = None, temps = None, action = None, argent = None):
@@ -151,8 +152,47 @@ class Compte(ctk.CTkFrame):
         self.argent_label = ctk.CTkLabel(self, text=f"{self.argent:.2f} $", font=("Arial", 20, "bold"))
         self.argent_label.grid(row=0, column=5, padx=10, pady=5)
 
+
     def retour(self):
         from watchlist import Watchlist
         nouveau_compte = Compte(self.master, self.stocks, self.temps, self.action, self.argent)
         self.clear_main_frame()
         Watchlist(self.master, self.stocks, self.temps, nouveau_compte)
+
+    def sauvegarder(self):
+            """Sauvegarde le compte sans inclure les DataFrames (non sérialisables)."""
+            if not hasattr(self, "nom"):
+                return
+
+            # 🔹 Crée une version "simplifiée" de la watchlist (uniquement les symboles)
+            watchlist_simplifiee = list(self.stocks.keys()) if self.stocks else []
+
+            if os.path.exists("comptes.json"):
+                with open("comptes.json", "r") as f:
+                    try:
+                        comptes = json.load(f)
+                    except json.JSONDecodeError:
+                        comptes = []
+            else:
+                comptes = []
+
+            # 🔹 Mise à jour ou ajout du compte
+            compte_trouve = False
+            for c in comptes:
+                if c["nom"] == self.nom:
+                    c["montant"] = self.argent
+                    c["actions"] = self.action
+                    c["watchlist"] = watchlist_simplifiee
+                    compte_trouve = True
+                    break
+
+            if not compte_trouve:
+                comptes.append({
+                    "nom": self.nom,
+                    "montant": self.argent,
+                    "actions": self.action,
+                    "watchlist": watchlist_simplifiee
+                })
+
+            with open("comptes.json", "w") as f:
+                json.dump(comptes, f, indent=4)

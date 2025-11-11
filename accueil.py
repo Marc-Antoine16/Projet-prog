@@ -5,6 +5,7 @@ from creation import Creation
 import json
 import os
 import yfinance as yf
+from datetime import date
 
 class Accueil(ctk.CTkFrame):
     def __init__(self, master=None):
@@ -57,7 +58,7 @@ class Accueil(ctk.CTkFrame):
                 for i, compte in enumerate(comptes_afficher):
                     nom = compte.get("nom", "Inconnu")
                     montant = compte.get("montant", 0)
-                    self.bouton_compte = ctk.CTkButton(self,text=f"{nom} — {montant:.2f} $",font=("Arial", 20), command=self.ouvrir_infoCompte)
+                    self.bouton_compte = ctk.CTkButton(self,text=f"{nom} — {montant:.2f} $",font=("Arial", 20), command=lambda c=compte: self.ouvrir_infoCompte(c))
                     self.bouton_compte.grid(row=5 + i, column=3, pady=(10,10))
                 return
         
@@ -78,14 +79,46 @@ class Accueil(ctk.CTkFrame):
                 except (json.JSONDecodeError, TypeError):
                     total =0.0
         return total
-
-    def ouvrir_infoCompte(self):
+    
+    def ouvrir_infoCompte(self, compte_data):
+        #Ouvre la Watchlist du compte sélectionné avec ses données sauvegardées.
         self.clear_main_frame()
         from watchlist import Watchlist
+        from compte import Compte
+        import yfinance as yf
+        from datetime import date
+
+        #Recharger les tickers enregistrés dans la watchlist du compte
+        watchlist_data = {}
+        for ticker in compte_data.get("watchlist", []):
+            try:
+                df = yf.download(ticker, start="2024-01-01", end=date.today(), interval="1d")
+                if not df.empty:
+                    df["Close"] = df["Close"].astype(float)
+                    watchlist_data[ticker] = df
+            except Exception as e:
+                print(f"Erreur lors du chargement du ticker {ticker} :", e)
+
+        #Crée l'objet Compte correspondant au JSON
+        compte = Compte(
+            master=self.master,
+            stocks=watchlist_data,              #les DataFrames rechargés ici
+            temps=1,
+            action=compte_data.get("actions", {}),
+            argent=compte_data.get("montant", 0)
+        )
+        setattr(compte, "nom", compte_data.get("nom", "Inconnu"))
+
+        #O«uvre la Watchlist propre à ce compte
         self.destroy()
-        self.master.current_page = Watchlist(master=self.master, temps =1)
+        self.master.current_page = Watchlist(master=self.master, compte=compte, temps=1)
         self.master.current_page.grid(row=0, column=0, sticky="nsew")
 
+        print(f"Compte '{compte.nom}' ouvert avec {len(watchlist_data)} titre(s) dans la Watchlist.")
+
+
+
+ 
         
 
     def ouvrir_titreDetenues(self):
