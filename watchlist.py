@@ -89,7 +89,7 @@ class Watchlist(ctk.CTkFrame):
             textePrix=str(prix) #evite le chargement
 
             if stock not in self.prix_buttons:
-                self.prix_buttons[stock] = ctk.CTkButton(self,text=textePrix, fg_color="transparent", hover_color="lightpink",font=("Arial", 24, "bold"),command=lambda s=stock: self.onButtonClicked(s) )
+                self.prix_buttons[stock] = ctk.CTkButton(self,text= textePrix, fg_color="transparent", hover_color="lightpink",font=("Arial", 24, "bold"),command=lambda s=stock: self.onButtonClicked(s) )
                 self.prix_buttons[stock].grid(row=i, column=1, pady=(10,10))
             else:
                 self.prix_buttons[stock].configure(text=str(prix))
@@ -145,7 +145,7 @@ class Watchlist(ctk.CTkFrame):
         
     def onButtonClicked(self, pseudo):
         self.clear_main_frame()
-        Info(self.master, self.stocks, pseudo, self.temps, self.compte)
+        Info(self.master, self.stocks, pseudo,  self.temps, self.compte, self.user)
 
     def ouvrir_graph(self, name):
         self.clear_main_frame()
@@ -226,7 +226,7 @@ class Watchlist(ctk.CTkFrame):
 
         self.clear_main_frame()
         from compte import Compte
-        self.compte = Compte(self.master, self.stocks, self.temps, action=actions, argent = argent, user = self.user)
+        self.compte = Compte(self.master, self.stocks, self.temps, action=actions, argent = argent, user = self.user,compte =self.compte)
 
         self.compte.create_widgets()
 
@@ -235,7 +235,7 @@ class Watchlist(ctk.CTkFrame):
 
         self.clear_main_frame()
         from acheter import Acheter
-        Acheter( master=self.master, stocks=self.stocks,temps=self.temps,action=action,argent=argent,user=self.user)
+        Acheter( master=self.master, stocks=self.stocks,temps=self.temps,action=action,argent=argent,user=self.user, compte= self.compte)
 
         '''
         prix_achat = round(self.stocks[action]["Close"].iloc[self.temps - 1].iloc[0], 2)

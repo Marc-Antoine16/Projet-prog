@@ -4,9 +4,9 @@
         "password": "1234",
         "balance": 10000,
         "stocks_owned": [
-            "LNT",
-            "ABT",
-            "CMCSA"
+            "NVDA",
+            "TSLA",
+            "AMZN"
         ]
     },
     {
@@ -14,8 +14,9 @@
         "password": "beau",
         "balance": 5000,
         "stocks_owned": [
-            "AOS",
-            "AFL"
+            "ALB",
+            "A",
+            "AMD"
         ]
     },
     {

@@ -135,4 +135,4 @@ class Graph(ctk.CTkFrame):
     def retour(self):
         from watchlist import Watchlist
         self.clear_main_frame()
-        Watchlist(master=self.master, stocks=self.stocks,temps=self.temps,compte=None,user=self.user) 
+        Watchlist(master=self.master, stocks=self.stocks,temps=self.temps,compte= self.compte,user=self.user) 
