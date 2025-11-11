@@ -81,14 +81,14 @@ class Accueil(ctk.CTkFrame):
         return total
     
     def ouvrir_infoCompte(self, compte_data):
-        #Ouvre la Watchlist du compte sélectionné avec ses données sauvegardées.
+        """Ouvre la Watchlist du compte sélectionné avec ses données sauvegardées."""
         self.clear_main_frame()
         from watchlist import Watchlist
         from compte import Compte
         import yfinance as yf
         from datetime import date
 
-        #Recharger les tickers enregistrés dans la watchlist du compte
+        #Recharger les tickers de la Watchlist
         watchlist_data = {}
         for ticker in compte_data.get("watchlist", []):
             try:
@@ -97,24 +97,37 @@ class Accueil(ctk.CTkFrame):
                     df["Close"] = df["Close"].astype(float)
                     watchlist_data[ticker] = df
             except Exception as e:
-                print(f"Erreur lors du chargement du ticker {ticker} :", e)
+                print(f"erreur lors du chargement du ticker {ticker} :", e)
 
-        #Crée l'objet Compte correspondant au JSON
-        compte = Compte(
-            master=self.master,
-            stocks=watchlist_data,              #les DataFrames rechargés ici
-            temps=1,
-            action=compte_data.get("actions", {}),
-            argent=compte_data.get("montant", 0)
-        )
+        #Recharger les actions, en évitant les téléchargements inutiles
+        actions_data = compte_data.get("actions", {})
+        for symbole, infos in actions_data.items():
+            try:
+                if symbole in watchlist_data:
+                    #Utilise le DataFrame déjà chargé dans la Watchlist
+                    infos["data"] = watchlist_data[symbole]
+                    print(f"[INFO] {symbole} récupéré depuis la Watchlist (pas de téléchargement).")
+                else:
+                    #Télécharge seulement si pas déjà présent
+                    df = yf.download(symbole, start="2024-01-01", end=date.today(), interval="1d")
+                    if not df.empty:
+                        df["Close"] = df["Close"].astype(float)
+                        infos["data"] = df
+                        print(f"[OK] {symbole} téléchargé pour les actions.")
+            except Exception as e:
+                print(f"[ERREUR] lors du chargement de l'action {symbole} :", e)
+
+        #Crée le Compte 
+        compte = Compte(master=self.master,stocks=watchlist_data,temps=1,action=actions_data,argent=compte_data.get("montant", 0))
         setattr(compte, "nom", compte_data.get("nom", "Inconnu"))
 
-        #O«uvre la Watchlist propre à ce compte
+        #Ouvre la Watchlist liée à ce compte ---
         self.destroy()
         self.master.current_page = Watchlist(master=self.master, compte=compte, temps=1)
         self.master.current_page.grid(row=0, column=0, sticky="nsew")
 
-        print(f"Compte '{compte.nom}' ouvert avec {len(watchlist_data)} titre(s) dans la Watchlist.")
+        print(f"Compte '{compte.nom}' ouvert avec {len(watchlist_data)} titres et {len(actions_data)} actions.")
+
 
 
 

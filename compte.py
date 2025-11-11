@@ -164,7 +164,12 @@ class Compte(ctk.CTkFrame):
             if not hasattr(self, "nom"):
                 return
 
-            # 🔹 Crée une version "simplifiée" de la watchlist (uniquement les symboles)
+            # Crée une version "simplifiée" des actions (sans les df)
+            actions_simplifiee = {}
+
+            for symbole, infos in self.action.items():
+                actions_simplifiee[symbole]={"prix_achat": infos["prix_achat"], "quantite": infos["quantite"]}
+
             watchlist_simplifiee = list(self.stocks.keys()) if self.stocks else []
 
             if os.path.exists("comptes.json"):
@@ -176,12 +181,12 @@ class Compte(ctk.CTkFrame):
             else:
                 comptes = []
 
-            # 🔹 Mise à jour ou ajout du compte
+            #Mise à jour ou ajout du compte
             compte_trouve = False
             for c in comptes:
                 if c["nom"] == self.nom:
                     c["montant"] = self.argent
-                    c["actions"] = self.action
+                    c["actions"] = actions_simplifiee
                     c["watchlist"] = watchlist_simplifiee
                     compte_trouve = True
                     break
@@ -193,6 +198,6 @@ class Compte(ctk.CTkFrame):
                     "actions": self.action,
                     "watchlist": watchlist_simplifiee
                 })
-
+            #sauvegarde
             with open("comptes.json", "w") as f:
                 json.dump(comptes, f, indent=4)
