@@ -4,8 +4,6 @@ import yfinance as yf
 from graphe import Graph
 from compte import Compte
 import pandas as pd
-import time
-from PIL import Image
 from datetime import date
 
 class Watchlist(ctk.CTkFrame):
@@ -87,10 +85,11 @@ class Watchlist(ctk.CTkFrame):
         if not self.winfo_exists():
             return
 
-        # Si aucun stock, afficher un message et continuer doucement
+        # Si aucun stock, afficher un message et continuer 
         if not self.stocks:
             if self.date_label is not None:
                 self.date_label.configure(text="Aucun stock")
+
             self.temps += 1
             self.boucle_id = self.after(5000, self.boucle_stock)
             return
@@ -119,7 +118,7 @@ class Watchlist(ctk.CTkFrame):
                 prix = round(float(y.iloc[self.temps].item()), 2)
                 textePrix = str(prix)
 
-                # --- Prix ---
+                # Prix
                 if stock not in self.prix_buttons or not self.prix_buttons[stock].winfo_exists():
                     self.prix_buttons[stock] = ctk.CTkButton(
                         self, text=textePrix, fg_color="transparent", hover_color="lightpink",
