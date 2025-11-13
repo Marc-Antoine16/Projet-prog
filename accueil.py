@@ -1,11 +1,11 @@
 import customtkinter as ctk
 from titreDetenues import TitreDetenues
-from placement import Placement
 from creation import Creation
 import json
 import os
 import yfinance as yf
 from datetime import date
+from graph_total import GraphTotal
 
 class Accueil(ctk.CTkFrame):
     def __init__(self, master=None):
@@ -28,7 +28,7 @@ class Accueil(ctk.CTkFrame):
 
         solde_total = self.calculer_solde_total()
     
-        self.bouton_solde = ctk.CTkButton(self, text=f"solde total : {solde_total:.2f} $", font=("Arial", 20))
+        self.bouton_solde = ctk.CTkButton(self, text=f"solde total : {solde_total:.2f} $", font=("Arial", 20),command=self.ouvrir_graph_total)
         self.bouton_solde.grid(row=1, column=3, pady=(10,10))
 
         self.bouton_titres = ctk.CTkButton(self, text= "Titres detenues ->", font=("Arial", 20), command= self.ouvrir_titreDetenues)
@@ -126,21 +126,15 @@ class Accueil(ctk.CTkFrame):
         self.master.current_page = Watchlist(master=self.master, compte=compte, temps=1)
         self.master.current_page.grid(row=0, column=0, sticky="nsew")
 
-        print(f"Compte '{compte.nom}' ouvert avec {len(watchlist_data)} titres et {len(actions_data)} actions.")
-
-
-
-
- 
-        
+        print(f"Compte '{compte.nom}' ouvert avec {len(watchlist_data)} titres et {len(actions_data)} actions.") 
 
     def ouvrir_titreDetenues(self):
         self.clear_main_frame()
         TitreDetenues(self.master)
 
-    def ouvrir_placement(self):
+    def ouvrir_graph_total(self):
         self.clear_main_frame()
-        Placement(self.master)
+        GraphTotal(master=self.master)
     
     def creer_compte(self):
 

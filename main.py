@@ -22,7 +22,7 @@ class MainApp(ctk.CTk):
 
     def show_accueil(self):
         self.current_page = Accueil(master=self)
-        self.current_page.grid(row=0, column=0, sticky="nsew") # nsew: le widget s’aligne au centre de la cellule et s’étire avec la fenêtre.
+        self.current_page.grid(row=0, column=0, sticky="nsew") #nsew: le widget s’aligne au centre de la cellule et s’étire avec la fenêtre.
 
     def show_watchlist(self):
         self.current_page = Watchlist(master=self,stocks=self.stocks, temps= 1)
