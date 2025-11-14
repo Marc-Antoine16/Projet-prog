@@ -3,7 +3,6 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from watchlist import Watchlist
-from graphe import Graph
 from login import LoginPage
 from datetime import date
 from menu import MenuBar

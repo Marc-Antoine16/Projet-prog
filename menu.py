@@ -2,6 +2,7 @@ import customtkinter as ctk
 import tkinter as tk
 from tkinter import Menu
 from info import Info
+from watchlist import Watchlist
 from graphe import Graph
 import pandas as pd
 
@@ -22,8 +23,11 @@ class MenuBar(ctk.CTkFrame):
 
         # ajout du bouton quitter pour quitter l'app
         quitter_menu = Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="Opérations", menu=quitter_menu)
+        quitter_menu.add_command(label="Watchlist", command=self.open_watchlist)
+        quitter_menu.add_separator()
         quitter_menu.add_command(label="Quitter", command=self.quit)
-        menu_bar.add_cascade(label="Quitter", menu=quitter_menu)
+        
 
         # ajout du menu info
         info_menu = Menu(menu_bar, tearoff=0)
@@ -39,6 +43,7 @@ class MenuBar(ctk.CTkFrame):
         for stock in self.stocks:
             graph_menu.add_command(label=stock, command=lambda s=stock : self.open_graph(s))
 
+        # ajouter du menu compte
         # view_menu = Menu(menu_bar, tearoff=0)
         # menu_bar.add_cascade(label="Affichage", menu=view_menu)
         # view_menu.add_command(label="Accueil", command=self.show_accueil)
@@ -52,6 +57,8 @@ class MenuBar(ctk.CTkFrame):
         self.master.clear_main_frame()
         self.master.update_menu(self.stocks, self.temps, self.compte)
         Graph(self.master, self.stocks, stock, self.temps, self.compte)
- 
-
     
+    def open_watchlist(self):
+        self.master.clear_main_frame()
+        self.master.update_menu(self.stocks, self.temps, self.compte)
+        Watchlist(self.master, self.stocks, self.temps, self.compte)
