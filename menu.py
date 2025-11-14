@@ -44,9 +44,11 @@ class MenuBar(ctk.CTkFrame):
             graph_menu.add_command(label=stock, command=lambda s=stock : self.open_graph(s))
 
         # ajouter du menu compte
-        # view_menu = Menu(menu_bar, tearoff=0)
-        # menu_bar.add_cascade(label="Affichage", menu=view_menu)
-        # view_menu.add_command(label="Accueil", command=self.show_accueil)
+        compte_menu = Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="Compte", menu=compte_menu)
+        compte_menu.add_command(label="Ouvrir", command=self.open_compte)
+        compte_menu.add_separator()
+        compte_menu.add_command(label="Déconexion", command=self.deconexion)
 
     def open_info(self, stock):
         self.master.clear_main_frame()
@@ -62,3 +64,20 @@ class MenuBar(ctk.CTkFrame):
         self.master.clear_main_frame()
         self.master.update_menu(self.stocks, self.temps, self.compte)
         Watchlist(self.master, self.stocks, self.temps, self.compte)
+
+    def open_compte(self):
+        actions = self.compte.action if self.compte is not None else {}
+        argent = self.compte.argent if self.compte is not None else 1000
+
+        self.master.clear_main_frame()
+
+        from compte import Compte
+        self.compte = Compte(self.master, self.stocks, self.temps, action=actions, argent = argent)
+
+        self.master.update_menu(self.stocks, self.temps, self.compte)
+        self.compte.create_widgets()
+
+    def deconexion(self):
+        self.master.clear_main_frame()
+        self.master.update_menu(self.stocks, self.temps, self.compte)
+        self.master.show_login()

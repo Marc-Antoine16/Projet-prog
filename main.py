@@ -8,7 +8,6 @@ from datetime import date
 from menu import MenuBar
 
 
-
 APP_GEOMETRY = "900x700"
 APP_TITLE = "Paper Trading"
 
