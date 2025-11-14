@@ -82,6 +82,8 @@ class Graph(ctk.CTkFrame):
         # supprimer le dernier axe
         self.ax.clear()
 
+        self.ax.set_title(f"Graphique {self.nom} — {periode}", color="white", fontsize=16)
+        
         # création d'une copie que l'on peut modifier par après
         df = df.copy()
 
