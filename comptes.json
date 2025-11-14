@@ -1,3 +1,30 @@
 [
-   
+    {
+        "nom": "Compte 1 ",
+        "montant": 1775.7399999999989,
+        "actions": {
+            "AES": {
+                "prix_achat": 17.04,
+                "quantite": 9
+            },
+            "AFL": {
+                "prix_achat": 79.83,
+                "quantite": 5
+            },
+            "ACN": {
+                "prix_achat": 332.58,
+                "quantite": 3
+            },
+            "GOOGL": {
+                "prix_achat": 134.8,
+                "quantite": 5
+            }
+        },
+        "watchlist": [
+            "AES",
+            "AFL",
+            "ACN",
+            "GOOGL"
+        ]
+    }
 ]

@@ -69,8 +69,8 @@ class TitreDetenues(ctk.CTkFrame):
         row=3
         for symbole, infos in titres.items():
             try:
-                ticker = yf.Ticker(symbole)
-                prix_actuel = round(float(ticker.history(period="1d")["Close"].iloc[-1]), 2)
+                ticker = yf.Ticker(symbole) #obtiens un objet Ticker qui permet d’appeler plein de fonctions pour récupérer des données boursières.
+                prix_actuel = round(float(ticker.history(period="1d")["Close"].iloc[-1]), 2) #Télécharge le dernier prix de clôture de cette action, prends la dernière valeur, convertis-la en float et arrondis-la à deux chiffres.”
                 prix_moyen_achat = infos["prix_achat_total"] / infos["quantite"]
                 rendement = ((prix_actuel - prix_moyen_achat) / prix_moyen_achat) * 100
                 couleur = "green" if rendement >= 0 else "red"

@@ -62,7 +62,7 @@ class Accueil(ctk.CTkFrame):
                     self.bouton_compte.grid(row=5 + i, column=3, pady=(10,10))
                 return
         
-        self.label_aucun = ctk.CTkLabel(self, text="Aucun compte n’a encore été créé.",font=("Arial", 20),text_color="gray")
+        self.label_aucun = ctk.CTkLabel(self, text="Aucun compte n'a encore été créé.",font=("Arial", 20),text_color="gray")
         self.label_aucun.grid(row=5, column=3, pady=(10,10))
 
     def mettre_a_jour_solde(self):
@@ -134,7 +134,8 @@ class Accueil(ctk.CTkFrame):
 
     def ouvrir_graph_total(self):
         self.clear_main_frame()
-        GraphTotal(master=self.master)
+        self.master.current_page = GraphTotal(master=self.master)
+        self.master.current_page.grid(row=0, column=0, sticky="nsew")
     
     def creer_compte(self):
 
