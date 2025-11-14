@@ -6,6 +6,7 @@ from watchlist import Watchlist
 from graphe import Graph
 from login import LoginPage
 from datetime import date
+from menu import MenuBar
 
 
 
@@ -26,7 +27,21 @@ class MainApp(ctk.CTk):
             "MSFT" : yf.download("MSFT", start="2024-01-01", end=f"{self.date}", interval="1d")
         }
         self.protocol("WM_DELETE_WINDOW", self.quit)
+        self.update_menu(self.stocks, 1, None)
         self.show_watchlist()
+
+    def update_menu(self, stocks, temps, compte):
+        self.menu = MenuBar(master=self, stocks=stocks, temps=temps, compte=compte)
+    
+    def clear_main_frame(self):
+        if hasattr(self, "boucle_id"):
+            try:
+                self.after_cancel(self.boucle_id)
+            except Exception:
+                pass
+
+        for widget in self.winfo_children():
+            widget.destroy()
 
     def show_watchlist(self):
         self.current_page = Watchlist(master=self,stocks=self.stocks, temps= 1)

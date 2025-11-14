@@ -18,6 +18,9 @@ class Info(ctk.CTkFrame):
         self.nbColonnes = 3
         self.nbLignes = 8
         self.create_widgets()
+
+    def renew_Menu(self, stocks, temps, compte):
+        self.master.update_menu(stocks, temps, compte)
     
     def fetch_data(self):
 
@@ -136,6 +139,10 @@ class Info(ctk.CTkFrame):
             self.date = ctk.CTkLabel(self, text=self.stocks[stock]. index[self.temps].date(), text_color= "light gray", font=("Arial", 24))
             self.date.grid(row=0, column=2, padx = (100, 100), pady=(5,10), sticky="e")
             self.temps += 1
+
+            # Reset du temps
+            self.renew_Menu(self.stocks, self.temps, self.compte)
+
             self.boucle_id = self.after(5000, lambda: self.boucle_stock())
 
     def clear_main_frame(self):

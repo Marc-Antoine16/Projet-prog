@@ -5,7 +5,6 @@ from graphe import Graph
 from compte import Compte
 import pandas as pd
 import time
-from PIL import Image
 from datetime import date
 
 class Watchlist(ctk.CTkFrame):
@@ -19,6 +18,9 @@ class Watchlist(ctk.CTkFrame):
         self.options_with_placeholder = ["Ajouter..."] + self.options
         self.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         self.create_widgets()
+
+    def renew_Menu(self, stocks, temps, compte):
+        self.master.update_menu(stocks, temps, compte)
 
     def create_widgets(self):
         self.master.grid_rowconfigure(0, weight= 1)
@@ -128,6 +130,10 @@ class Watchlist(ctk.CTkFrame):
             self.date_label.configure(text=date_text)
 
         self.temps += 1
+
+        #Reset du temps
+        self.renew_Menu(self.stocks, self.temps, self.compte)
+        
         self.boucle_id = self.after(5000, self.boucle_stock)
 
     def clear_main_frame(self):
@@ -155,7 +161,7 @@ class Watchlist(ctk.CTkFrame):
         LoginPage(master=self, stocks=self.stocks)
 
 
-    def option_changed(self, value): #ajout nouveau stock, créer widgets sans reconstruire la page pour que les labels de rendement deja existant reste visible et continue de se mettre a jour
+    def option_changed(self, value): #ajout nouveau stock, créer widgets sans reconstruire la page pour que les labels de rendement deja existant reste visible et continue de se mettre a jour 
         if value == "Ajouter...":
             return
         
@@ -170,6 +176,7 @@ class Watchlist(ctk.CTkFrame):
         # Ajouter uniquement les widgets pour ce stock
         i = len(self.stocks)  
 
+        self.renew_Menu(self.stocks, self.temps, self.compte)
        
         btn_action = ctk.CTkButton(self, text=value, fg_color="transparent", hover_color="lightpink", font=("Arial", 24, "bold"), command=lambda s=value: self.onButtonClicked(s))
         btn_action.grid(row=i, column=0, pady=(10,10))
