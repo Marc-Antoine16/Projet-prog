@@ -245,6 +245,11 @@ class Watchlist(ctk.CTkFrame):
 
             else:
                 self.compte.action[action] = {"data": self.stocks[action], "prix_achat": prix_achat, "quantite": 1}
+            
+            self.message_label = ctk.CTkLabel(self, text=f"Action de {action} \n à un prix de: {prix_achat}",
+                                            font=("Arial", 20))
+            self.message_label.grid(row=9, column=0)
+            self.after(4000, self.message_label.destroy)
 
         else:
             self.label = ctk.CTkLabel(self, text="Pas assez de fonds pour acheter cette action",
