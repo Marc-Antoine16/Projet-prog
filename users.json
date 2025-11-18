@@ -2,15 +2,15 @@
     {
         "username": "gab",
         "password": "1234",
-        "balance": 999994938.6028423,
+        "balance": 999995706.1033764,
         "stocks_owned": {
             "AMZN": {
                 "prix_achat": 145.476,
-                "quantite": 5
+                "quantite": 2
             },
             "GOOGL": {
                 "prix_achat": 141.50636363636363,
-                "quantite": 11
+                "quantite": 9
             },
             "AMD": {
                 "prix_achat": 160.17,
@@ -18,9 +18,28 @@
             }
         },
         "watchlist": [
-            "AMD",
             "GOOGL",
             "AMZN"
+        ]
+    },
+    {
+        "username": "marc",
+        "password": "beau",
+        "balance": 180.8505026245117,
+        "stocks_owned": {
+            "SRE": {
+                "prix_achat": 70.75,
+                "quantite": 5
+            },
+            "AMZN": {
+                "prix_achat": 154.62,
+                "quantite": 3
+            }
+        },
+        "watchlist": [
+            "GOOGL",
+            "AMZN",
+            "SRE"
         ]
     }
 ]

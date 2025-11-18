@@ -5,52 +5,113 @@ class Acheter(ctk.CTkFrame) :
         super().__init__(master)
         self.master = master
         self.stocks = stocks
-        self.action = action if action is not None else {}
+        self.action = action
         self.temps = temps
         self.argent = float(argent)
         self.user = user
         self.compte = compte
         self.watchlist = watchlist
-        self.create_widgets()  
-        
+
+        self.df = self.stocks[self.action]
+
+        self.create_widgets()
+     
 
     def create_widgets(self):
+
+        # Création de la grille 12 × 12 
+        for i in range(12):
+            self.grid_rowconfigure(i, weight=1)
+            self.grid_columnconfigure(i, weight=1)
+
+        self.grid(row=0, column=0, sticky="nsew")
+
+        # Titre et bouton retour
+        titre = ctk.CTkLabel(self, text=f"Achat : {self.action}", font=("Arial", 32, "bold"))
+        titre.grid(row=0, column=0, columnspan=6, pady=(20, 10))
+
+        retour = ctk.CTkButton(self, text="⬅ Retour", fg_color="transparent",hover_color="cyan",font=("Arial", 22, "bold"),command=self.retour)
+        retour.grid(row=0, column=10, columnspan=2, padx=20)
+
+        # Info et prix
+        current_price = round(float(self.df["Close"].iloc[self.temps]), 2)
+        yesterday = float(self.df["Close"].iloc[self.temps - 1])
+        change = current_price - yesterday
+        pct = (change / yesterday) * 100 if yesterday != 0 else 0
+
+        couleur = "green" if change >= 0 else "red"
+        signe = "+" if change >= 0 else "-"
+
+        # cadre infos
+        info = ctk.CTkFrame(self, fg_color="#1a1a1a", corner_radius=12)
+        info.grid(row=1, column=0, columnspan=6, rowspan=3, padx=20, pady=10, sticky="nsew")
+
+        ctk.CTkLabel(info, text=f"Prix actuel : {current_price:.2f} $", font=("Arial", 26, "bold")).grid(row=0, column=0, sticky="w", padx=10, pady=5)
+
+        ctk.CTkLabel(info,text=f"{signe}{abs(change):.2f} $  ({signe}{abs(pct):.2f} %)",text_color=couleur,font=("Arial", 22, "bold")).grid(row=1, column=0, sticky="w", padx=10)
+
+        high = round(float(self.df["High"].iloc[self.temps]), 2)
+        low = round(float(self.df["Low"].iloc[self.temps]), 2)
+        volume = int(self.df["Volume"].iloc[self.temps])
+
+        stats = ctk.CTkFrame(info, fg_color="transparent")
+        stats.grid(row=2, column=0, sticky="w", padx=10, pady=10)
+
+        ctk.CTkLabel(stats, text=f"Plus haut du jour : {high} $", font=("Arial", 18)).grid(row=0, column=0, sticky="w")
+        ctk.CTkLabel(stats, text=f"Plus bas du jour : {low} $", font=("Arial", 18)).grid(row=1, column=0, sticky="w")
+        ctk.CTkLabel(stats, text=f"Volume : {volume:,}", font=("Arial", 18)).grid(row=2, column=0, sticky="w")
+
         
-         # Configuration principale
-        self.master.grid_rowconfigure(0, weight=1)
-        self.master.grid_columnconfigure(0, weight=1)
-        self.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+        solde = ctk.CTkFrame(self, fg_color="#1a1a1a", corner_radius=12)
+        solde.grid(row=1, column=7, columnspan=4, rowspan=1, padx=20, pady=10, sticky="nsew")
 
-        self.titre_label = ctk.CTkLabel(self, text=f"Acheter : {self.action}", font=("Arial", 28, "bold"))
-        self.titre_label.grid(row=0, column=0, columnspan=2, pady=(10, 20))
+        ctk.CTkLabel(solde, text=f"Votre solde : {self.user.balance:.2f} $", font=("Arial", 22, "bold")).grid(row=0, column=0, pady=10, padx=10)
 
-        self.retour_button = ctk.CTkButton(self, text="⬅ Retour", fg_color="transparent", hover_color="cyan", font=("Arial", 28, "bold"), command=self.retour)
-        self.retour_button.grid(row=0, column=2, padx=(20, 10), sticky="e")
+        # Quantité et coût total
+        achat = ctk.CTkFrame(self, fg_color="#1a1a1a", corner_radius=12)
+        achat.grid(row=5, column=0, columnspan=10, rowspan=4, padx=20, pady=10, sticky="nsew")
 
-        # affiche prix actuel de l'action
-        current_price = round(float(self.stocks[self.action]["Close"].iloc[self.temps]), 2)
-        self.prix_label = ctk.CTkLabel(self, text=f"Prix actuel : {current_price:.2f} $", font=("Arial", 22))
-        self.prix_label.grid(row=1, column=0, columnspan=2, pady=(0, 10))
+        ctk.CTkLabel(achat, text="Quantité :", font=("Arial", 20)).grid(row=0, column=0, padx=20, pady=20)
 
-        # affiche le solde du compte de l'utilisateur
-        self.balance_label = ctk.CTkLabel(self, text=f"Votre solde : {self.user.balance:.2f} $", font=("Arial", 18))
-        self.balance_label.grid(row=2, column=0, columnspan=2, pady=(0, 20))
+        self.quantite_entry = ctk.CTkEntry(achat, width=120, placeholder_text="Ex: 5")
+        self.quantite_entry.grid(row=0, column=1, padx=10, pady=20)
+
+        self.quantite_entry.bind("<KeyRelease>", lambda e: self.update_cost())
+
+        self.cout_label = ctk.CTkLabel(achat, text="Coût total : 0.00 $", font=("Arial", 20))
+        self.cout_label.grid(row=1, column=0, columnspan=3, pady=10)
+
+        self.restant_label = ctk.CTkLabel(achat, text="", font=("Arial", 20))
+        self.restant_label.grid(row=2, column=0, columnspan=3, pady=10)
+
+        bouton = ctk.CTkButton(achat, text=f"Acheter {self.action}",font=("Arial", 24, "bold"),hover_color="green",command=lambda: self.acheter_action(self.action))
+        bouton.grid(row=3, column=0, columnspan=3, pady=20)
+
+        # Message d’erreur
+        self.message_label = ctk.CTkLabel(self, text="", text_color="red", font=("Arial", 18))
+        self.message_label.grid(row=10, column=0, columnspan=10)
 
 
-        # Sélection de quantité
-        self.quantite_label = ctk.CTkLabel(self, text="Quantité :", font=("Arial", 18))
-        self.quantite_label.grid(row=3, column=0, sticky="w", padx=10)
+    def update_cost(self):
+            txt = self.quantite_entry.get().strip()
+            if not txt.isdigit():
+                self.cout_label.configure(text="Coût total : -")
+                self.restant_label.configure(text="")
+                return
 
-        self.quantite_entry = ctk.CTkEntry(self, placeholder_text="Entrez la quantité", width=150)
-        self.quantite_entry.grid(row=3, column=1, padx=10, pady=5, sticky="w") 
+            q = int(txt)
+            price = round(float(self.df["Close"].iloc[self.temps]), 2)
+            total = q * price
 
-        self.acheter_action_button = ctk.CTkButton(self,text= f"Acheter des actions de {self.action}", width=200, height=35, command= lambda a = self.action :self.acheter_action(a))
-        self.acheter_action_button.grid(row=4, column=1, padx=10, pady=5, sticky="w")
+            self.cout_label.configure(text=f"Coût total : {total:.2f} $")
 
-        # message erreur ou validation
-        self.message_label = ctk.CTkLabel(self,text="", text_color="red", font=("Arial", 13))
-        self.message_label.grid(row=3, column=0, pady=(4, 6))
+            restant = self.user.balance - total
+            couleur = "green" if restant >= 0 else "red"
 
+            self.restant_label.configure(
+                text=f"Solde après achat : {restant:.2f} $",
+                text_color=couleur
+        )
 
 
     def clear_main_frame(self):
