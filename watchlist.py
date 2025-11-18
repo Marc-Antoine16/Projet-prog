@@ -78,23 +78,44 @@ class Watchlist(ctk.CTkFrame):
 
 
     def boucle_stock(self):
-        #Met à jour en boucle les prix et rendements de la Watchlist
 
+        #Lire le temps global
+        t = self.master.temps_global
 
-        #Si la fenêtre a été détruite, on arrête
+        #Si la fenêtre est détruite on arrête
         if not self.winfo_exists():
             return
 
-        # Si aucun stock, afficher un message et continuer 
+       
+        #CAS 1: aucun stock
+        
         if not self.stocks:
-            if self.date_label is not None:
-                self.date_label.configure(text="Aucun stock")
 
-            self.temps += 1
+            # Date simulée qui commence en 2024
+            date_simulee = (self.date + pd.Timedelta(days=t))
+
+            # Affichage date
+            if self.date_label is None or not self.date_label.winfo_exists():
+                self.date_label = ctk.CTkLabel(self, text=date_simulee,text_color="light gray", font=("Arial", 24))
+                self.date_label.grid(row=0, column=3, padx=(0, 10), pady=(10, 10))
+            else:
+                self.date_label.configure(text=date_simulee)
+
+            # Message aucun titre
+            if not hasattr(self, "aucun_label") or not self.aucun_label.winfo_exists():
+                self.aucun_label = ctk.CTkLabel(self, text="Aucun titre dans la Watchlist. Ajoutez-en via le menu.", font=("Arial", 20), text_color="gray")
+                self.aucun_label.grid(row=1, column=1, columnspan=5, pady=(20, 20))
+
+            #Increment
+            self.master.temps_global += 1
+
+            # Prochaine mise à jour
             self.boucle_id = self.after(5000, self.boucle_stock)
             return
 
-        #Initialisation des structures
+        # CAS 2 : il y a des stocks
+
+        # Initialisation unique
         if not hasattr(self, "prix_buttons"):
             self.prix_buttons = {}
         if not hasattr(self, "rendement_labels"):
@@ -102,81 +123,71 @@ class Watchlist(ctk.CTkFrame):
         if not hasattr(self, "date_label"):
             self.date_label = None
 
-        #Sécurité : si temps dépasse la longueur, on remet à zéro
-        try:
-            premier_stock = next(iter(self.stocks))
-            if self.temps >= len(self.stocks[premier_stock]["Close"]):
-                self.temps = 0
-        except Exception:
-            return
+        # Sécurité : boucle sur les dates
+        premier_stock = next(iter(self.stocks))
+        if t >= len(self.stocks[premier_stock]["Close"]):
+            self.master.temps_global = 0
+            t = 0
 
-        #Mise à jour des prix et rendements
+        # Mise à jour prix et rendements
         for i, stock in enumerate(self.stocks, start=1):
             try:
-                data = self.stocks[stock]
-                y = data["Close"]
-                prix = round(float(y.iloc[self.temps].item()), 2)
-                textePrix = str(prix)
+                df = self.stocks[stock]
+                y = df["Close"]
 
-                # Prix
+                # Prix actuel
+                prix = round(float(y.iloc[t].item()), 2)
+
+                # Prix affichage
                 if stock not in self.prix_buttons or not self.prix_buttons[stock].winfo_exists():
-                    self.prix_buttons[stock] = ctk.CTkButton(
-                        self, text=textePrix, fg_color="transparent", hover_color="lightpink",
-                        font=("Arial", 24, "bold"), command=lambda s=stock: self.onButtonClicked(s)
-                    )
+                    self.prix_buttons[stock] = ctk.CTkButton(self,text=str(prix), fg_color="transparent", hover_color="lightpink",font=("Arial", 24, "bold"),command=lambda s=stock: self.onButtonClicked(s))
                     self.prix_buttons[stock].grid(row=i, column=1, pady=(10, 10))
                 else:
                     self.prix_buttons[stock].configure(text=str(prix))
 
                 # Rendement
-                if self.temps >= 1:
-                    dernier = float(y.iloc[self.temps].item())
-                    avant_dernier = float(y.iloc[self.temps - 1].item())
+                if t >= 1:
+                    dernier = float(y.iloc[t].item())
+                    avant_dernier = float(y.iloc[t - 1].item())
                     variation = dernier - avant_dernier
                     pourcentage = (variation / avant_dernier) * 100
                 else:
-                    variation = 0.0
-                    pourcentage = 0.0
+                    variation = 0
+                    pourcentage = 0
 
                 signe = "+" if variation >= 0 else "-"
                 couleur = "green" if variation >= 0 else "red"
-                variation = abs(round(variation, 2))
-                pourcentage = abs(round(pourcentage, 2))
 
-                texte_rendement = f"{signe}{variation} $ ({signe}{pourcentage}%) la dernière journée."
+                texte_rendement = f"{signe}{abs(variation):.2f} $ ({signe}{abs(pourcentage):.2f}%)"
 
                 if stock not in self.rendement_labels or not self.rendement_labels[stock].winfo_exists():
-                    self.rendement_labels[stock] = ctk.CTkLabel(
-                        self, text=texte_rendement, text_color=couleur, font=("Arial", 14)
-                    )
+                    self.rendement_labels[stock] = ctk.CTkLabel(self, text=texte_rendement,
+                                                                text_color=couleur, font=("Arial", 14))
                     self.rendement_labels[stock].grid(row=i, column=3, pady=(10, 10))
                 else:
-                    self.rendement_labels[stock].configure(
-                        text=texte_rendement, text_color=couleur, font=("Arial", 14)
-                    )
+                    self.rendement_labels[stock].configure(text=texte_rendement, text_color=couleur)
 
             except Exception as e:
-                print(f"Erreur dans boucle_stock pour {stock} : {e}")
+                print("Erreur boucle_stock:", e)
                 continue
 
-        # Affichage de la date
+        # Affichage date réelle du stock
         try:
-            date_text = self.stocks[premier_stock].index[self.temps].date()
+            date_text = self.stocks[premier_stock].index[t].date()
             if self.date_label is None or not self.date_label.winfo_exists():
-                self.date_label = ctk.CTkLabel(self, text=date_text, text_color="light gray", font=("Arial", 24))
+                self.date_label = ctk.CTkLabel(self, text=date_text,text_color="light gray", font=("Arial", 24))
                 self.date_label.grid(row=0, column=3, padx=(0, 10), pady=(10, 10))
             else:
                 self.date_label.configure(text=date_text)
-        except Exception:
+        except:
             pass
 
-        #Planifie la prochaine mise à jour
-        if self.winfo_exists():
-            self.temps += 1
-            self.boucle_id = self.after(5000, self.boucle_stock)
-
-
     
+        self.master.temps_global += 1
+
+        # Planifier prochain update
+        self.boucle_id = self.after(5000, self.boucle_stock)
+
 
     def clear_main_frame(self):
         if hasattr(self, "boucle_id"):

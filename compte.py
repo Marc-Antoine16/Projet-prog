@@ -58,8 +58,10 @@ class Compte(ctk.CTkFrame):
         self.update_affichage()
 
     def update_affichage(self):
-        if self.temps == len(self.stocks[next(iter(self.stocks))]['Close']):
-            self.temps = 1
+        t=self.master.temps_global
+        if t == len(self.stocks[next(iter(self.stocks))]['Close']):
+           self.master.temps_global=0
+           t=0
 
         else:
             for widget in self.winfo_children():
@@ -73,7 +75,7 @@ class Compte(ctk.CTkFrame):
             for nom, info in self.action.items():
                 prix_achat = float(info["prix_achat"])
 
-                t = int(self.temps)
+                t = int(t)
                 if t < len(info["data"]["Close"]):
                     prix_actuel = float(round(info["data"]["Close"].iloc[t].iloc[0], 2))
                 else:
@@ -93,11 +95,11 @@ class Compte(ctk.CTkFrame):
             
             if len(self.stocks) > 0:
                 premier_stock = next(iter(self.stocks))
-                self.date = ctk.CTkLabel(self, text=self.stocks[premier_stock].index[self.temps].date(), text_color="light gray", font=("Arial", 24))
+                self.date = ctk.CTkLabel(self, text=self.stocks[premier_stock].index[t].date(), text_color="light gray", font=("Arial", 24))
                 self.date.grid(row=0, column=4, padx=(0, 10), pady=(10,10))
             self.argent_label = ctk.CTkLabel(self, text=f"{self.argent:.2f} $", font=("Arial", 20, "bold"))
             self.argent_label.grid(row=0, column=5, padx=10, pady=5)
-            self.temps += 1
+            self.master.temps_global += 1
             self.boucle_id = self.after(5000, lambda: self.update_affichage())
 
     def clear_main_frame(self):
@@ -176,8 +178,6 @@ class Compte(ctk.CTkFrame):
         confirmation.grid(row=i, column=3, pady=10)
         self.after(3000, confirmation.destroy)
 
-
-   
 
 
 

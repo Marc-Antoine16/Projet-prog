@@ -71,7 +71,7 @@ class GraphTotal(ctk.CTkFrame):
 
         ctk.CTkButton(frame_btn, text="TOUT",fg_color="transparent", hover_color="gray30",command=lambda: self.change_period("ALL")).grid(row=0, column=3, padx=5)
 
-    # ---------- Historique persistant ----------
+
 
     def load_history(self):
         #Charge l'historique du rendement total depuis le JSON, si dispo.
@@ -104,7 +104,7 @@ class GraphTotal(ctk.CTkFrame):
             json.dump(historique, f, indent=4)
 
 
-    def calcul_rendement_total(self):
+    def calcul_rendement_total(self,index):
         if not os.path.exists("comptes.json"):
             return 0
 
@@ -118,7 +118,8 @@ class GraphTotal(ctk.CTkFrame):
         total_valeur = 0
 
         for compte in comptes:
-            for symbole, info in compte.get("actions", {}).items():
+            actions = compte.get("actions,{}")
+            for symbole, info in actions.items():
                 quantite = info.get("quantite", 0)
                 prix_achat = info.get("prix_achat", 0)
 
@@ -126,9 +127,16 @@ class GraphTotal(ctk.CTkFrame):
                     continue
 
                 try:
-                    prix_actuel = yf.Ticker(symbole).history(period="1d")["Close"].iloc[-1]
+                   df = yf.download(symbole, start="2024-01-01", interval="1d")
+                   df["Close"] = df["Close"].astype(float)
                 except Exception:
                     continue
+                    
+                 # Protection si index dépasse la longueur
+                if index < len(df):
+                    prix_actuel = float(df["Close"].iloc[index])
+                else:
+                    prix_actuel = float(df["Close"].iloc[-1])
 
                 total_investi += prix_achat * quantite
                 total_valeur += prix_actuel * quantite

@@ -1,30 +1,35 @@
 [
     {
-        "nom": "Compte 1 ",
-        "montant": 1775.7399999999989,
+        "nom": "gfds",
+        "montant": 313.5999999999991,
         "actions": {
-            "AES": {
-                "prix_achat": 17.04,
-                "quantite": 9
-            },
             "AFL": {
-                "prix_achat": 79.83,
-                "quantite": 5
+                "prix_achat": 80.19,
+                "quantite": 8
             },
-            "ACN": {
-                "prix_achat": 332.58,
-                "quantite": 3
+            "ALB": {
+                "prix_achat": 142.13,
+                "quantite": 2
             },
             "GOOGL": {
-                "prix_achat": 134.8,
-                "quantite": 5
+                "prix_achat": 137.22,
+                "quantite": 4
+            },
+            "AEE": {
+                "prix_achat": 70.0,
+                "quantite": 2
+            },
+            "AMD": {
+                "prix_achat": 138.58,
+                "quantite": 3
             }
         },
         "watchlist": [
-            "AES",
             "AFL",
-            "ACN",
-            "GOOGL"
+            "ALB",
+            "GOOGL",
+            "AEE",
+            "AMD"
         ]
     }
 ]

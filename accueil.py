@@ -133,6 +133,18 @@ class Accueil(ctk.CTkFrame):
         TitreDetenues(self.master)
 
     def ouvrir_graph_total(self):
+
+        #compte = getattr(self.master, "compte", None)
+
+        if json.load(open("comptes.json","r"))==[]:
+            msgAide=ctk.CTkLabel(self, text="Veuillez créer au moins un compte pour voir le graphique du rendement total.", text_color="red", font=("Arial", 16))
+            msgAide.grid(row=4,column = 3, pady=(10,10))
+            return
+        """elif compte.actions=={}:
+            msgAide=ctk.CTkLabel(self, text="Veuillez acheter au moins une action pour voir le graphique du rendement total.", text_color="red", font=("Arial", 16))
+            msgAide.grid(row=4,column = 3, pady=(10,10))
+            return """
+        
         self.clear_main_frame()
         self.master.current_page = GraphTotal(master=self.master)
         self.master.current_page.grid(row=0, column=0, sticky="nsew")
