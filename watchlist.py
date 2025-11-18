@@ -36,11 +36,18 @@ class Watchlist(ctk.CTkFrame):
         self.dropdown.set("Ajouter...")
         self.dropdown.grid(row=0, column=4, pady=(10,10))
 
+        if self.compte is None:
+            cash = 1000
+        else :
+            cash = self.compte.argent
+
+        self.cash = ctk.CTkLabel(self, text=f"{round(cash,2)} $", font=("Arial", 24))
+        self.cash.grid(row=0, column=5, padx=(20,0))
         
         self.bouton_compte = ctk.CTkButton(self, text = "Compte", fg_color="transparent", hover_color="red", font=("Arial", 24), command = self.ouvrir_compte)
         self.bouton_compte.grid(row = 7, column = 0, pady = (10,10))
 
-        
+
 
         i = 1
         for stock in self.stocks:
@@ -256,6 +263,9 @@ class Watchlist(ctk.CTkFrame):
                                     fg_color="dark gray", font=("Arial", 20))
             self.label.grid(row=3, column=3, padx=(20, 20), pady=(20, 20))
             self.after(3000, self.label.destroy)
+
+        if self.cash is not None:
+            self.cash.configure(text=f"{round(self.compte.argent,2)} $")
     
 
     def supprime_stock(self, nom):
