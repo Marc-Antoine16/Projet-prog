@@ -9,18 +9,19 @@ from PIL import Image
 from user import User
 
 class Watchlist(ctk.CTkFrame):
-    def __init__(self, master=None, stocks=None, temps = None, compte = None, user = None):
+    def __init__(self, master=None, stocks=None, temps = None, compte = None, user = None, watchlist = None):
         super().__init__(master)
         self.master = master
         self.stocks = stocks
         self.temps = temps
         self.compte = compte
         self.user = user
+        self.watchlist = watchlist
         self.options = pd.read_csv("https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv")["Symbol"].tolist()
         self.options_with_placeholder = ["Ajouter..."] + self.options
         self.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         self.create_widgets()
-        print("DEBUG — utilisateur reçu :", type(self.compte), getattr(self.compte, "username", None))
+
 
     def create_widgets(self):
         self.master.grid_rowconfigure(0, weight= 1)
@@ -154,7 +155,7 @@ class Watchlist(ctk.CTkFrame):
     def logout(self):
         self.clear_main_frame()
         from login import LoginPage
-        LoginPage(master=self, stocks=self.stocks)
+        LoginPage(master=self.master, stocks=self.stocks)
 
 
     def option_changed(self, value): #ajout nouveau stock, créer widgets sans reconstruire la page pour que les labels de rendement deja existant reste visible et continue de se mettre a jour
@@ -172,9 +173,8 @@ class Watchlist(ctk.CTkFrame):
             print(f"Erreur téléchargement du stock {value} :", e)
             return
 
-        self.user.add_stock(value) # utilise la méthode add_stock de l'utilisateur pour ajouter un aciton 
-
-
+        
+        self.user.add_to_watchlist(value)
         # Ajouter uniquement les widgets pour ce stock
         i = len(self.stocks)  
 
@@ -219,15 +219,32 @@ class Watchlist(ctk.CTkFrame):
 
 
     def ouvrir_compte(self):
-        actions = self.compte.action if self.compte is not None else {}
+        from compte import Compte
+        import yfinance as yf
+
+        # Si le compte existe déjà, on garde ses données locales
+        if self.compte is not None:
+            actions = self.compte.actions
+        else:
+            # On reconstruit les données des actions à partir du JSON
+            actions = {}
+            for stock, info in self.user.stocks_owned.items():
+                try:
+                    df = yf.download(stock, start="2024-01-01", end="2025-10-11", interval="1d")
+                    df["Close"] = df["Close"].astype(float)
+                    actions[stock] = {
+                        "data": df,
+                        "prix_achat": info["prix_achat"],
+                        "quantite": info["quantite"]
+                    }
+                except Exception as e:
+                    print(f" Erreur de téléchargement pour {stock} :", e)
+           
+
         argent = self.user.balance
 
-        
-
         self.clear_main_frame()
-        from compte import Compte
-        self.compte = Compte(self.master, self.stocks, self.temps, action=actions, argent = argent, user = self.user,compte =self.compte)
-
+        self.compte = Compte(self.master,self.stocks,self.temps,action=actions,argent=argent,user=self.user,compte=self.compte, watchlist=self.watchlist)
         self.compte.create_widgets()
 
     def acheter_stock(self, action):
@@ -235,37 +252,8 @@ class Watchlist(ctk.CTkFrame):
 
         self.clear_main_frame()
         from acheter import Acheter
-        Acheter( master=self.master, stocks=self.stocks,temps=self.temps,action=action,argent=argent,user=self.user, compte= self.compte)
-
-        '''
-        prix_achat = round(self.stocks[action]["Close"].iloc[self.temps - 1].iloc[0], 2)
-
-        if self.compte is None:
-            from compte import Compte
-            self.compte = Compte(self.master, self.stocks, self.temps, action={}, argent=1000)
-
-        if self.compte.argent >= prix_achat:
-            self.compte.argent -= prix_achat
-
-            if action in self.compte.action:
-                ancienne_quantite = self.compte.action[action]["quantite"]
-                ancien_prix = self.compte.action[action]["prix_achat"]
-
-                nouveau_prix_moyen = ((ancien_prix * ancienne_quantite) + prix_achat) / (ancienne_quantite + 1)
-                self.compte.action[action]["quantite"] += 1
-
-            else:
-                self.compte.action[action] = {"data": self.stocks[action], "prix_achat": prix_achat, "quantite": 1}
-
-        else:
-            self.label = ctk.CTkLabel(self, text="Pas assez de fonds pour acheter cette action",
-                                    fg_color="dark gray", font=("Arial", 20))
-            self.label.grid(row=3, column=3, padx=(20, 20), pady=(20, 20))
-            self.after(3000, self.label.destroy)
-        '''
-        
-
-       
+        Acheter( master=self.master, stocks=self.stocks,temps=self.temps,action=action,argent=argent,user=self.user, compte= self.compte, watchlist=self.watchlist)
+   
 
     def supprime_stock(self, nom):
         if hasattr(self, "boucle_id"):
@@ -279,7 +267,7 @@ class Watchlist(ctk.CTkFrame):
 
             if hasattr(self, "user") and self.user is not None:
                 try:
-                    self.user.remove_stock(nom)
+                    self.user.remove_from_watchlist(nom)
                 except Exception as e:
                     print(f"Erreur suppression du stock chez l'utilisateur : {e}")
             else:
@@ -298,3 +286,5 @@ class Watchlist(ctk.CTkFrame):
             
         self.clear_main_frame()
         self.create_widgets()
+
+

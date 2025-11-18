@@ -12,6 +12,7 @@ class LoginPage(ctk.CTkFrame):
         super().__init__(master)
         self.master = master
         self.stocks = stocks
+        
 
        # fenêtre principale qui s'adapte
         self.master.grid_rowconfigure(0, weight=1)
@@ -90,14 +91,15 @@ class LoginPage(ctk.CTkFrame):
                     username= user_found["username"],
                     password= user_found["password"],
                     balance= user_found["balance"],
-                    stocks_owned= user_found["stocks_owned"])
+                    stocks_owned= user_found["stocks_owned"],
+                    watchlist=user_found["watchlist"])
                 
-                for stock in current_user.stocks_owned :
+                for stock in current_user.watchlist :
                     self.stocks[stock] = yf.download(stock, start="2024-01-01", end="2025-10-11", interval="1d")
                     
                 from watchlist import Watchlist
                 self.watchlist_page =  Watchlist(master=self.master, stocks=self.stocks, temps=0, compte= None, user = current_user) # ouvre la page principale Watchlist
-                
+               
               
 
 
@@ -134,7 +136,8 @@ class LoginPage(ctk.CTkFrame):
         "username": username,
         "password": password,
         "balance": 1000,
-        "stocks_owned": []
+        "stocks_owned": {},
+        "watchlist": []   
         }
     
         # Ajoute nouveau compte liste

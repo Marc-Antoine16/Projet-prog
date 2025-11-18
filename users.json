@@ -2,30 +2,25 @@
     {
         "username": "gab",
         "password": "1234",
-        "balance": 10000,
-        "stocks_owned": [
-            "NVDA",
-            "TSLA",
+        "balance": 999994938.6028423,
+        "stocks_owned": {
+            "AMZN": {
+                "prix_achat": 145.476,
+                "quantite": 5
+            },
+            "GOOGL": {
+                "prix_achat": 141.50636363636363,
+                "quantite": 11
+            },
+            "AMD": {
+                "prix_achat": 160.17,
+                "quantite": 7
+            }
+        },
+        "watchlist": [
+            "AMD",
+            "GOOGL",
             "AMZN"
-        ]
-    },
-    {
-        "username": "marc",
-        "password": "beau",
-        "balance": 5000,
-        "stocks_owned": [
-            "ALB",
-            "A",
-            "AMD"
-        ]
-    },
-    {
-        "username": "test",
-        "password": "1234",
-        "balance": 1000,
-        "stocks_owned": [
-            "ABBV",
-            "ABT"
         ]
     }
 ]

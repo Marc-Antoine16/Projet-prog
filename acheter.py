@@ -1,7 +1,7 @@
 import customtkinter as ctk
 
 class Acheter(ctk.CTkFrame) :
-    def __init__(self, master = None, stocks = None, temps = None, action = None, argent = None, user=None, compte = None):
+    def __init__(self, master = None, stocks = None, temps = None, action = None, argent = None, user=None, compte = None, watchlist = None):
         super().__init__(master)
         self.master = master
         self.stocks = stocks
@@ -10,6 +10,7 @@ class Acheter(ctk.CTkFrame) :
         self.argent = float(argent)
         self.user = user
         self.compte = compte
+        self.watchlist = watchlist
         self.create_widgets()  
         
 
@@ -46,6 +47,10 @@ class Acheter(ctk.CTkFrame) :
         self.acheter_action_button = ctk.CTkButton(self,text= f"Acheter des actions de {self.action}", width=200, height=35, command= lambda a = self.action :self.acheter_action(a))
         self.acheter_action_button.grid(row=4, column=1, padx=10, pady=5, sticky="w")
 
+        # message erreur ou validation
+        self.message_label = ctk.CTkLabel(self,text="", text_color="red", font=("Arial", 13))
+        self.message_label.grid(row=3, column=0, pady=(4, 6))
+
 
 
     def clear_main_frame(self):
@@ -56,45 +61,70 @@ class Acheter(ctk.CTkFrame) :
     def retour(self):
         from watchlist import Watchlist
         self.clear_main_frame()
-        Watchlist(master=self.master, stocks=self.stocks,temps=self.temps,compte=self.compte,user=self.user) 
+        Watchlist(master=self.master, stocks=self.stocks,temps=self.temps,compte=self.compte,user=self.user, watchlist= self.watchlist) 
 
        
-    def acheter_action(self,action) :
+    def acheter_action(self, action):
 
         prix_achat = round(float(self.stocks[action]["Close"].iloc[self.temps - 1]), 2)
+        quantite = int(self.quantite_entry.get().strip())
 
-        quantite = int(self.quantite_entry.get().strip()) # récupère la quantite que l'utilisateur veut acheter
+        if quantite <= 0:
+            self.message_label.configure(text="Quantité invalide.", text_color="red")
+            return
 
         if self.compte is None:
             from compte import Compte
-            self.compte = Compte(self.master, self.stocks, self.temps, action={}, argent=1000)
+            self.compte = Compte(self.master, self.stocks, self.temps,
+                                action={}, argent=self.user.balance, user=self.user)
 
         self.compte.argent = self.user.balance
         cout_total = prix_achat * quantite
 
-        if self.compte.argent >= cout_total :
-            self.compte.argent -= cout_total
-            self.user.balance -= cout_total
+        if self.compte.argent < cout_total:
+            self.message_label.configure(text="Pas assez de fond pour acheter cette action !", text_color="red")
+            return
 
-            if action in self.compte.action:
-                ancienne_quantite = self.compte.action[action]["quantite"]
-                ancien_prix = self.compte.action[action]["prix_achat"]
+        # Déduire l'argent
+        self.compte.argent -= cout_total
+        self.user.balance -= cout_total
 
-                nouveau_prix_moyen = ((ancien_prix * ancienne_quantite) + (prix_achat * quantite) ) / (ancienne_quantite + quantite)
-                self.compte.action[action]["quantite"] += quantite
+        # Mise à jour du compte (self.compte.actions)
+        if action in self.compte.actions:
+            ancienne_quantite = self.compte.actions[action]["quantite"]
+            ancien_prix = self.compte.actions[action]["prix_achat"]
 
-            else:
-                self.compte.action[action] = {"data": self.stocks[action], "prix_achat": prix_achat, "quantite": quantite}
+            nouveau_prix_moyen = (
+                (ancien_prix * ancienne_quantite) + (prix_achat * quantite)
+            ) / (ancienne_quantite + quantite)
+
+            self.compte.actions[action]["prix_achat"] = nouveau_prix_moyen
+            self.compte.actions[action]["quantite"] += quantite
 
         else:
-            self.label = ctk.CTkLabel(self, text="Pas assez de fonds pour acheter cette action",
-                                    fg_color="dark gray", font=("Arial", 20))
-            self.label.grid(row=3, column=3, padx=(20, 20), pady=(20, 20))
-            self.after(3000, self.label.destroy)
-        return
+            # Première fois que cette action est dans le compte
+            self.compte.actions[action] = {
+                "data": self.stocks[action],   # DataFrame en mémoire seulement
+                "prix_achat": prix_achat,
+                "quantite": quantite
+            }
 
-        
-        
-        
-        
-    
+        # Mise à jour du user 
+        if action in self.user.stocks_owned:
+            ancienne_quantite = self.user.stocks_owned[action]["quantite"]
+            ancien_prix = self.user.stocks_owned[action]["prix_achat"]
+
+            nouveau_prix_moyen = (
+                (ancien_prix * ancienne_quantite) + (prix_achat * quantite)
+            ) / (ancienne_quantite + quantite)
+
+            self.user.stocks_owned[action]["prix_achat"] = nouveau_prix_moyen
+            self.user.stocks_owned[action]["quantite"] += quantite
+        else:
+            self.user.stocks_owned[action] = {
+                "prix_achat": prix_achat,
+                "quantite": quantite
+            }
+
+        # Sauvegarder le nouveau solde (et stocks_owned) dans le JSON
+        self.user.change_balance(self.compte.argent)
