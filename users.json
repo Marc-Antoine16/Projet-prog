@@ -1,45 +1,54 @@
 [
     {
+        "username": "a",
+        "password": "1",
+        "balance": 0,
+        "role": "admin",
+        "stocks_owned": {},
+        "watchlist": []
+    },
+    {
         "username": "gab",
         "password": "1234",
-        "balance": 999995706.1033764,
+        "balance": 590.5190246582032,
+        "role": "user",
         "stocks_owned": {
-            "AMZN": {
-                "prix_achat": 145.476,
-                "quantite": 2
-            },
             "GOOGL": {
-                "prix_achat": 141.50636363636363,
-                "quantite": 9
-            },
-            "AMD": {
-                "prix_achat": 160.17,
-                "quantite": 7
+                "prix_achat": 137.89,
+                "quantite": 3
             }
         },
         "watchlist": [
-            "GOOGL",
-            "AMZN"
+            "LNT",
+            "GOOG",
+            "GOOGL"
         ]
     },
     {
         "username": "marc",
         "password": "beau",
-        "balance": 180.8505026245117,
+        "balance": 145.2057342529297,
+        "role": "user",
         "stocks_owned": {
-            "SRE": {
-                "prix_achat": 70.75,
-                "quantite": 5
-            },
-            "AMZN": {
-                "prix_achat": 154.62,
-                "quantite": 3
+            "GOOGL": {
+                "prix_achat": 141.46428571428572,
+                "quantite": 6
             }
         },
         "watchlist": [
             "GOOGL",
-            "AMZN",
-            "SRE"
+            "GOOG"
+        ]
+    },
+    {
+        "username": "LT",
+        "password": "ph",
+        "balance": 1000,
+        "role": "user",
+        "stocks_owned": {},
+        "watchlist": [
+            "AES",
+            "AMD"
         ]
     }
 ]

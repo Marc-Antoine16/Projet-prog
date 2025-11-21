@@ -78,7 +78,15 @@ class LoginPage(ctk.CTkFrame):
             for user in users :  # regarde si l'utilisateur et le mot de passe correspond a un utilisateur dans le json
                 if user["username"] == username and user["password"] == password :
                     user_found = user # si l'utilisateur est trouvé on garde ses infos pour les utiliser plus bas
+
+                    # on vérifie si il est un admin
+                    if user_found["role"] == "admin":
+                        from admin_page import AdminPage
+                        self.clear_main_frame()
+                        self.admin_page =AdminPage(master=self.master, stocks = self.stocks, users=users)   # page admin
+                        return
                     break
+
 
             if user_found is None : 
                 self.message_label.configure(text="Identifiants incorrects.", text_color="red")
@@ -91,6 +99,7 @@ class LoginPage(ctk.CTkFrame):
                     username= user_found["username"],
                     password= user_found["password"],
                     balance= user_found["balance"],
+                    role = user_found["role"],
                     stocks_owned= user_found["stocks_owned"],
                     watchlist=user_found["watchlist"])
                 
@@ -99,13 +108,11 @@ class LoginPage(ctk.CTkFrame):
                     
                 from watchlist import Watchlist
                 self.watchlist_page =  Watchlist(master=self.master, stocks=self.stocks, temps=0, compte= None, user = current_user) # ouvre la page principale Watchlist
-               
-              
 
 
     def clear_main_frame(self):
-            for widget in self.master.winfo_children():
-                widget.destroy()
+        for widget in self.winfo_children():
+            widget.destroy()
        
     def create_account(self):
 
@@ -136,9 +143,11 @@ class LoginPage(ctk.CTkFrame):
         "username": username,
         "password": password,
         "balance": 1000,
+        "role" : "user",
         "stocks_owned": {},
         "watchlist": []   
         }
+    
     
         # Ajoute nouveau compte liste
         users.append(new_user)

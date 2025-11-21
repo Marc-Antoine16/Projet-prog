@@ -47,12 +47,17 @@ class Compte(ctk.CTkFrame):
     def create_widgets(self):
         # Layout de base
         self.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+
+        for i in range(6):
+            self.grid_columnconfigure(i, weight=1)
+
         self.master.grid_rowconfigure(0, weight=1)
         self.master.grid_columnconfigure(0, weight=1)
 
         self.titre_label = ctk.CTkLabel(self, text="Compte", font=("Arial", 30, "bold"))
         self.titre_label.grid(row=0, column=2, padx=(10, 30), pady=(5, 20))
 
+   
         self.argent_label = ctk.CTkLabel(self, text=f"{self.argent:.2f} $", font=("Arial", 20, "bold"))
         self.argent_label.grid(row=0, column=5, padx=10, pady=5)
 
@@ -140,7 +145,7 @@ class Compte(ctk.CTkFrame):
                 info = widget.grid_info()
                 col = info.get("column")
                 row = info.get("row")
-                if (col in (3, 4) and row >= 2) or (row == 0 and col in (4, 5)):
+                if (col in (3, 4) and row >= 2) or (row == 0 and col == 4):
                     widget.destroy()
 
             i = 2

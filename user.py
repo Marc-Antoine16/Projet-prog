@@ -2,11 +2,12 @@ import os
 import json
 
 class User :
-    def __init__(self, username, password, balance, stocks_owned = None, watchlist=None):
+    def __init__(self, username, password, balance, role, stocks_owned = None, watchlist=None):
         
         self.username = username
         self.password = password
         self.balance = balance
+        self.role = role
         self.stocks_owned = stocks_owned if stocks_owned is not None else {} # si il existe une liste la prendre sinon la crée
         self.watchlist = watchlist if watchlist is not None else []
 
