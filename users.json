@@ -10,24 +10,20 @@
     {
         "username": "gab",
         "password": "1234",
-        "balance": 590.5190246582032,
+        "balance": 1000,
         "role": "user",
-        "stocks_owned": {
-            "GOOGL": {
-                "prix_achat": 137.89,
-                "quantite": 3
-            }
-        },
+        "stocks_owned": {},
         "watchlist": [
-            "LNT",
-            "GOOG",
-            "GOOGL"
+            "AKAM",
+            "ABBV",
+            "AXP",
+            "AOS"
         ]
     },
     {
         "username": "marc",
         "password": "beau",
-        "balance": 145.2057342529297,
+        "balance": 12000.0,
         "role": "user",
         "stocks_owned": {
             "GOOGL": {
@@ -36,19 +32,7 @@
             }
         },
         "watchlist": [
-            "GOOGL",
-            "GOOG"
-        ]
-    },
-    {
-        "username": "LT",
-        "password": "ph",
-        "balance": 1000,
-        "role": "user",
-        "stocks_owned": {},
-        "watchlist": [
-            "AES",
-            "AMD"
+            "GOOGL"
         ]
     }
 ]

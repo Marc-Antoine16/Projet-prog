@@ -271,7 +271,7 @@ class Watchlist(ctk.CTkFrame):
                 except Exception as e:
                     print(f"Erreur suppression du stock chez l'utilisateur : {e}")
             else:
-                print("⚠️ Aucun utilisateur actif — suppression locale seulement")
+                print(" Aucun utilisateur actif — suppression locale seulement")
 
         if hasattr(self, "prix_buttons"):
             self.prix_buttons.clear()

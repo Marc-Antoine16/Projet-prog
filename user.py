@@ -38,6 +38,16 @@ class User :
         self.balance = amount
         self.save_to_json()
 
+    def change_password(self, password) :
+            self.password = password
+            self.save_to_json()
+    def change_stocks_owned(self, stocks_owned) :
+        self.stocks_owned = stocks_owned
+        self.save_to_json()
+    def change_watchlist(self, watchlist) :
+        self.watchlist = watchlist
+        self.save_to_json()
+
     def add_to_watchlist(self, stock):
         if stock not in self.watchlist:
             self.watchlist.append(stock)
@@ -71,9 +81,10 @@ class User :
 
         for user in users:
             if user["username"] == self.username:
+                user["password"] = self.password
                 user["balance"] = self.balance
                 user["stocks_owned"] = self.stocks_owned
-                user["watchlist"] = self.watchlist
+                user["watchlist"] = self.watchlist 
                 break
 
         with open(users_file, "w") as f:
