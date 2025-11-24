@@ -48,7 +48,7 @@ class Creation(ctk.CTkFrame):
             self.erreurMontant.grid(row=1 , column= 1, pady=(10,10))
             return
         
-        compte={"nom" : nom , "montant": montant, "actions":{}, "watchlist": {} }
+        compte={"nom" : nom , "montant": montant, "actions":{}, "watchlist": [] }
         if os.path.exists("comptes.json"):
             with open("comptes.json", "r") as f:
                 data = json.load(f)

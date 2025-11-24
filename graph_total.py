@@ -5,25 +5,28 @@ import yfinance as yf
 import json
 import os
 from datetime import datetime
-import pandas as pd   
+import pandas as pd
+
 
 class GraphTotal(ctk.CTkFrame):
 
     HISTORY_FILE = "historique_total.json"
-    UPDATE_INTERVAL = 5000  
+    UPDATE_INTERVAL = 5000  # mise à jour toutes les 5 secondes
 
     def __init__(self, master=None):
         super().__init__(master)
 
         self.master = master
-        self.data_x = []  
-        self.data_y = []  
+        self.data_x = []  # timestamps
+        self.data_y = []  # rendements
         self.current_period = "ALL"  # "ALL", "1J", "1S", "1M"
 
-        self.load_history()      # Charge l'historique s'il existe
-        self.create_widgets()    
-        self.update_graph()      # Lance la mise à jour en boucle
+        # Cache pour les DataFrames yfinance
+        self.df_cache = {}
 
+        self.load_history()
+        self.create_widgets()
+        self.update_graph()  # lance la mise à jour en boucle
 
     def create_widgets(self):
 
@@ -51,31 +54,27 @@ class GraphTotal(ctk.CTkFrame):
         self.ax.set_ylabel("Rendement (%)")
 
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
-        self.canvas.get_tk_widget().grid(row=1, column=0, columnspan=2,
-                                         sticky="nsew", pady=20)
+        self.canvas.get_tk_widget().grid(row=1, column=0, columnspan=2,sticky="nsew", pady=20)
 
-        #Bouton retour
+        # Bouton retour
         btn_retour = ctk.CTkButton(self,text="← Retour",fg_color="transparent",hover_color="green",font=("Arial", 20),command=self.retour_accueil)
         btn_retour.grid(row=0, column=0, padx=10, pady=10, sticky="w")
 
-        #Boutons de période
+        # Boutons de période
         frame_btn = ctk.CTkFrame(self, fg_color="transparent")
         frame_btn.grid(row=0, column=1, padx=10, pady=10, sticky="e")
         frame_btn.grid_columnconfigure((0, 1, 2, 3), weight=1)
 
-        ctk.CTkButton(frame_btn, text="1J",fg_color="transparent", hover_color="gray30",command=lambda: self.change_period("1J")).grid(row=0, column=0, padx=5)
+        ctk.CTkButton(frame_btn,text="1J",fg_color="transparent",hover_color="gray30",command=lambda: self.change_period("1J")).grid(row=0, column=0, padx=5)
 
-        ctk.CTkButton(frame_btn, text="1S",fg_color="transparent", hover_color="gray30",command=lambda: self.change_period("1S")).grid(row=0, column=1, padx=5)
+        ctk.CTkButton(frame_btn,text="1S",fg_color="transparent",hover_color="gray30",command=lambda: self.change_period("1S")).grid(row=0, column=1, padx=5)
 
-        ctk.CTkButton(frame_btn, text="1M",fg_color="transparent", hover_color="gray30",command=lambda: self.change_period("1M")).grid(row=0, column=2, padx=5)
+        ctk.CTkButton(frame_btn,text="1M",fg_color="transparent",hover_color="gray30",command=lambda: self.change_period("1M")).grid(row=0, column=2, padx=5)
 
-        ctk.CTkButton(frame_btn, text="TOUT",fg_color="transparent", hover_color="gray30",command=lambda: self.change_period("ALL")).grid(row=0, column=3, padx=5)
-
-
+        ctk.CTkButton(frame_btn, text="TOUT", fg_color="transparent", hover_color="gray30", command=lambda: self.change_period("ALL")).grid(row=0, column=3, padx=5)
 
     def load_history(self):
-        #Charge l'historique du rendement total depuis le JSON, si dispo.
-
+        """Charge l'historique du rendement total depuis le JSON, si dispo."""
         if not os.path.exists(self.HISTORY_FILE):
             return
 
@@ -89,7 +88,7 @@ class GraphTotal(ctk.CTkFrame):
         self.data_y = [item["rendement"] for item in data]
 
     def save_point(self, timestamp, rendement):
-        #Ajoute un point de rendement dans le fichier d'historique.
+        """Ajoute un point de rendement dans le fichier d'historique."""
         historique = []
         if os.path.exists(self.HISTORY_FILE):
             try:
@@ -104,53 +103,89 @@ class GraphTotal(ctk.CTkFrame):
             json.dump(historique, f, indent=4)
 
 
-    def calcul_rendement_total(self,index):
+    def charger_comptes(self):
         if not os.path.exists("comptes.json"):
-            return 0
+            return []
 
-        with open("comptes.json", "r") as f:
-            try:
-                comptes = json.load(f)
-            except json.JSONDecodeError:
-                return 0
+        try:
+            with open("comptes.json", "r") as f:
+                data = json.load(f)
+                if isinstance(data, list):
+                    return data
+                return []
+        except json.JSONDecodeError:
+            return []
 
-        total_investi = 0
-        total_valeur = 0
+    def get_df_symbole(self, symbole):
+        """Retourne le DataFrame yfinance pour un symbole (avec cache)."""
+        if symbole in self.df_cache:
+            return self.df_cache[symbole]
+
+        try:
+            df = yf.download(symbole, start="2024-01-01", interval="1d", progress=False)
+            if df.empty or "Close" not in df:
+                print(f"[ATTENTION] Aucune donnée valide pour {symbole}")
+                self.df_cache[symbole] = None
+                return None
+
+            df["Close"] = df["Close"].astype(float)
+            self.df_cache[symbole] = df
+            return df
+
+        except Exception as e:
+            print(f"[ERREUR] Téléchargement {symbole} : {e}")
+            self.df_cache[symbole] = None
+            return None
+
+    def calcul_rendement_total(self):
+
+        comptes = self.charger_comptes()
+        if not comptes:
+            return 0.0
+
+        t = int(getattr(self.master, "temps_global", 0))
+
+        total_investi = 0.0
+        total_valeur = 0.0
 
         for compte in comptes:
-            actions = compte.get("actions,{}")
+            actions = compte.get("actions", {})
+
             for symbole, info in actions.items():
                 quantite = info.get("quantite", 0)
-                prix_achat = info.get("prix_achat", 0)
+                prix_achat = float(info.get("prix_achat", 0))
 
                 if quantite <= 0 or prix_achat <= 0:
                     continue
 
-                try:
-                   df = yf.download(symbole, start="2024-01-01", interval="1d")
-                   df["Close"] = df["Close"].astype(float)
-                except Exception:
+                df = self.get_df_symbole(symbole)
+                if df is None:
+                    # si aucune donnée, ignore ce titre pour le rendement
                     continue
-                    
-                 # Protection si index dépasse la longueur
-                if index < len(df):
-                    prix_actuel = float(df["Close"].iloc[index])
-                else:
-                    prix_actuel = float(df["Close"].iloc[-1])
+
+                serie = df["Close"]
+                if len(serie) == 0:
+                    continue
+
+                idx = t
+                if idx >= len(serie):
+                    idx = len(serie) - 1
+
+                prix_actuel = float(serie.iloc[idx])
 
                 total_investi += prix_achat * quantite
                 total_valeur += prix_actuel * quantite
 
         if total_investi == 0:
-            return 0
+            return 0.0
 
         rendement = ((total_valeur - total_investi) / total_investi) * 100
         return float(rendement)
 
-    def update_graph(self):
-        #Ajoute un point, sauvegarde, et redessine selon la période.
 
-        # Si le frame est détruit, on arrête
+    def update_graph(self):
+        """Ajoute un point, sauvegarde, et redessine selon la période."""
+
         if not self.winfo_exists():
             return
 
@@ -163,21 +198,22 @@ class GraphTotal(ctk.CTkFrame):
 
         self.redraw_for_period()
 
-        # replanifie l'update
+        # Replanifie l'update
         self.after(self.UPDATE_INTERVAL, self.update_graph)
 
     def change_period(self, period):
-        #Change la période affichée (1J, 1S, 1M, ALL) et redessine.
+        """Change la période affichée (1J, 1S, 1M, ALL) et redessine."""
 
         self.current_period = period
         self.redraw_for_period()
 
     def get_filtered_data(self):
-        #Retourne les x/y filtrés selon la période actuelle.
+        """Retourne les x/y filtrés selon la période actuelle."""
+
         if not self.data_x:
             return [], []
 
-        df = pd.DataFrame({"x": pd.to_datetime(self.data_x),"y": self.data_y})
+        df = pd.DataFrame({"x": pd.to_datetime(self.data_x), "y": self.data_y})
 
         if self.current_period == "1J":
             cutoff = df["x"].max() - pd.Timedelta(days=1)
@@ -189,12 +225,11 @@ class GraphTotal(ctk.CTkFrame):
             cutoff = df["x"].max() - pd.Timedelta(days=30)
             df = df[df["x"] >= cutoff]
 
-        # "ALL" = pas de filtre
-
         return list(df["x"]), list(df["y"])
 
     def redraw_for_period(self):
-        #Redessine le graphique en fonction de la période choisie.
+        """Redessine le graphique en fonction de la période choisie."""
+
         x_vals, y_vals = self.get_filtered_data()
         self.dessiner_graph(x_vals, y_vals)
 
@@ -204,6 +239,7 @@ class GraphTotal(ctk.CTkFrame):
         self.ax.set_facecolor("black")
         for spine in self.ax.spines.values():
             spine.set_color("white")
+
         self.ax.tick_params(axis='x', colors='white', rotation=45)
         self.ax.tick_params(axis='y', colors='white')
         self.ax.yaxis.label.set_color('white')
@@ -213,21 +249,19 @@ class GraphTotal(ctk.CTkFrame):
         self.ax.set_ylabel("Rendement (%)")
 
         if len(x_vals) >= 2:
-            # Segments rouge/vert selon la variation
             for i in range(1, len(x_vals)):
                 prev = y_vals[i - 1]
                 curr = y_vals[i]
                 color = "green" if curr >= prev else "red"
-                self.ax.plot(x_vals[i - 1:i + 1], [prev, curr],
-                             color=color, linewidth=2)
+                self.ax.plot(x_vals[i - 1:i + 1], [prev, curr], color=color, linewidth=2)
+                
         elif len(x_vals) == 1:
-            # Un seul point -> simple scatter
             self.ax.scatter(x_vals, y_vals, color="white")
 
         self.canvas.draw()
 
-
     def retour_accueil(self):
         """Retour à l'écran d'accueil."""
         self.destroy()
-        self.master.show_accueil()
+        if hasattr(self.master, "show_accueil"):
+            self.master.show_accueil()
