@@ -11,7 +11,12 @@ class MainApp(ctk.CTk):
         ctk.set_appearance_mode("Dark")      
         self.geometry(APP_GEOMETRY)
         self.title(APP_TITLE)
+
         self.temps_global=0
+        self.jour_global =0
+
+        self.freeze_date = False
+
         self.protocol("WM_DELETE_WINDOW", self.quit)
         self.show_accueil()
 

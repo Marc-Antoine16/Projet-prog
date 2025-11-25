@@ -216,14 +216,24 @@ class Accueil(ctk.CTkFrame):
 
     def ouvrir_graph_total(self):
         comptes = self.charger_comptes()
+
+        # Aucun compte créé
         if not comptes:
             msgAide = ctk.CTkLabel(self,text="Veuillez créer au moins un compte pour voir le graphique du rendement total.",text_color="red",font=("Arial", 16))
             msgAide.grid(row=4, column=3, pady=(10, 10))
             return
 
+        # Aucun compte n'a des actions
+        if not any(compte.get("actions") for compte in comptes):
+            msgErreur = ctk.CTkLabel(self,text="Impossible de voir le graphique du rendement total : vous ne détenez aucune action.",text_color="red",font=("Arial", 16))
+            msgErreur.grid(row=4, column=3, pady=(10,10))
+            return 
+
+        
         self.clear_main_frame()
         self.master.current_page = GraphTotal(master=self.master)
         self.master.current_page.grid(row=0, column=0, sticky="nsew")
+
 
     def creer_compte(self):
         data = self.charger_comptes()
@@ -235,6 +245,17 @@ class Accueil(ctk.CTkFrame):
         else:
             self.clear_main_frame()
             Creation(self.master)
+
+    def comptes_ont_actions(comptes):
+        # Si comptes est une liste de comptes
+        if isinstance(comptes, list):
+            return any(c.get("action") for c in comptes)
+
+        # Si comptes est un seul compte (dict)
+        if isinstance(comptes, dict):
+            return bool(comptes.get("action"))
+
+        return False
 
     def clear_main_frame(self):
         # Arrête les after éventuels

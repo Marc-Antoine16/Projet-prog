@@ -35,6 +35,7 @@ class Watchlist(ctk.CTkFrame):
         self.options_with_placeholder = ["Ajouter..."] + self.options
         self.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         self.create_widgets()
+        self.boucle_stock()
 
     def create_widgets(self):
         self.master.grid_rowconfigure(0, weight= 1)
@@ -73,10 +74,6 @@ class Watchlist(ctk.CTkFrame):
 
             i += 1      
 
-        self.boucle_stock()
-
-
-
     def boucle_stock(self):
 
         #Lire le temps global
@@ -91,8 +88,10 @@ class Watchlist(ctk.CTkFrame):
         
         if not self.stocks:
 
-            # Date simulée qui commence en 2024
-            date_simulee = (self.date + pd.Timedelta(days=t))
+            # Date simulée avec jour_global
+
+            jour = self.master.jour_global
+            date_simulee = (self.date + pd.Timedelta(days=jour))
 
             # Affichage date
             if self.date_label is None or not self.date_label.winfo_exists():
@@ -106,8 +105,9 @@ class Watchlist(ctk.CTkFrame):
                 self.aucun_label = ctk.CTkLabel(self, text="Aucun titre dans la Watchlist. Ajoutez-en via le menu.", font=("Arial", 20), text_color="gray")
                 self.aucun_label.grid(row=1, column=1, columnspan=5, pady=(20, 20))
 
-            #Increment
+            #Increment prix et date
             self.master.temps_global += 1
+         
 
             # Prochaine mise à jour
             self.boucle_id = self.after(5000, self.boucle_stock)
@@ -125,6 +125,7 @@ class Watchlist(ctk.CTkFrame):
 
         # Sécurité : boucle sur les dates
         premier_stock = next(iter(self.stocks))
+
         if t >= len(self.stocks[premier_stock]["Close"]):
             self.master.temps_global = 0
             t = 0
@@ -167,23 +168,30 @@ class Watchlist(ctk.CTkFrame):
                 else:
                     self.rendement_labels[stock].configure(text=texte_rendement, text_color=couleur)
 
-            except Exception as e:
-                print("Erreur boucle_stock:", e)
+            except :
                 continue
 
         # Affichage date réelle du stock
-        try:
-            date_text = self.stocks[premier_stock].index[t].date()
-            if self.date_label is None or not self.date_label.winfo_exists():
-                self.date_label = ctk.CTkLabel(self, text=date_text,text_color="light gray", font=("Arial", 24))
-                self.date_label.grid(row=0, column=3, padx=(0, 10), pady=(10, 10))
-            else:
-                self.date_label.configure(text=date_text)
-        except:
-            pass
+        
+            
+        jour = self.master.jour_global
 
-    
-        self.master.temps_global += 1
+        if jour < len(self.stocks[premier_stock].index):
+            date_text = self.stocks[premier_stock].index[jour].date()
+        else:
+            date_text = self.stocks[premier_stock].index[-1].date()
+
+        if self.date_label is None or not self.date_label.winfo_exists():
+            self.date_label = ctk.CTkLabel(self, text=date_text,text_color="light gray", font=("Arial", 24))
+            self.date_label.grid(row=0, column=3, padx=(0, 10), pady=(10, 10))
+        else:
+            self.date_label.configure(text=date_text)
+        
+        
+        self.master.temps_global+=1
+        if not getattr(self.master, "freeze_date", False):
+            self.master.jour_global += 1
+
 
         # Planifier prochain update
         self.boucle_id = self.after(5000, self.boucle_stock)
@@ -214,15 +222,20 @@ class Watchlist(ctk.CTkFrame):
         if value == "Ajouter..." or value in self.stocks:
             return
 
+        self.master.freeze_date=True
+        ancien_jour= self.master.jour_global
+
         #Télécharger les données du nouveau titre
         try:
             df = yf.download(value, start="2024-01-01", end=self.date, interval="1d")
         except Exception as e:
             print(f"[ERREUR] Téléchargement des données pour {value} : {e}")
+            self.master.freeze_date=False
             return
 
         if df.empty:
             print(f"[ATTENTION] Aucune donnée trouvée pour {value}")
+            self.master.freeze_date=False
             return
 
         #Convertir les prix en float
@@ -248,16 +261,16 @@ class Watchlist(ctk.CTkFrame):
             except Exception:
                 pass
 
-        # Supprimer les anciens widgets
-        self.clear_main_frame()
 
-        #réinitilaisation
+        self.clear_main_frame()
         self.prix_buttons = {}
         self.rendement_labels = {}
         self.date_label = None
 
-        #Recréer les widgets (avec le nouveau titre)
         self.create_widgets()
+
+        self.master.jour_global = ancien_jour
+        self.master.freeze_date = False
 
         # Relancer la boucle de mise à jour pour afficher immédiatement les prix
         self.boucle_stock()
@@ -268,16 +281,23 @@ class Watchlist(ctk.CTkFrame):
 
 
     def ouvrir_compte(self):
-        actions = self.compte.action if self.compte is not None else {}
-        argent = self.compte.argent if self.compte is not None else 1000
-        nom_compte = getattr(self.compte, "nom", "compte inconnu")  #récupère le nom existant ou une valeur par défaut
 
-        self.clear_main_frame()
+        if self.compte is None or not self.compte.action:
+    
+            msgErreur = ctk.CTkLabel(self, text="Vous ne détenez aucune action", text_color = "red", font = ("Arial", 20 ))
+            msgErreur.grid(row=5, column=1, pady=(10,10))
+        else:
 
-        from compte import Compte
-        self.compte = Compte(self.master, self.stocks, self.temps, action=actions, argent = argent, nom= nom_compte)
+            actions = self.compte.action if self.compte is not None else {}
+            argent = self.compte.argent if self.compte is not None else 1000
+            nom_compte = getattr(self.compte, "nom", "compte inconnu")  #récupère le nom existant ou une valeur par défaut
 
-        self.compte.create_widgets()
+            self.clear_main_frame()
+
+            from compte import Compte
+            self.compte = Compte(self.master, self.stocks, self.temps, action=actions, argent = argent, nom= nom_compte)
+
+            self.compte.create_widgets()
 
     def acheter_stock(self, action):
         prix_achat = round(self.stocks[action]["Close"].iloc[self.temps - 1].iloc[0], 2)
@@ -308,6 +328,10 @@ class Watchlist(ctk.CTkFrame):
 
     def supprime_stock(self, nom):
         #Stopper la boucle de mise à jour
+
+        self.master.freeze_date = True
+        ancien_jour = self.master.jour_global
+
         if hasattr(self, "boucle_id"):
             try:
                 self.after_cancel(self.boucle_id)
@@ -323,12 +347,17 @@ class Watchlist(ctk.CTkFrame):
             self.compte.stocks = self.stocks
             self.compte.sauvegarder()
 
+        self.clear_main_frame()
         self.prix_buttons = {}
         self.rendement_labels = {}
         self.date_label = None
 
-        self.clear_main_frame()
+        
         self.create_widgets()
+
+        self.master.jour_global = ancien_jour
+        self.master.freeze_date = False
+
         self.boucle_stock()
 
     
