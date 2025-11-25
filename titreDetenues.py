@@ -2,6 +2,8 @@ import customtkinter as ctk
 import os
 import yfinance as yf
 import json
+import pandas as pd
+from datetime import date
 
 class TitreDetenues(ctk.CTkFrame):
     def __init__(self, master=None):
@@ -66,19 +68,41 @@ class TitreDetenues(ctk.CTkFrame):
         for j, h in enumerate(headers):
             ctk.CTkLabel(self, text=h, font=("Arial", 20, "bold")).grid(row=2, column=j+1, padx=10, pady=10)
         
+        t = getattr(self.master, "temps_global", 0)
+
+        
         row=3
         for symbole, infos in titres.items():
-            try:
-                ticker = yf.Ticker(symbole) #obtiens un objet Ticker qui permet d’appeler plein de fonctions pour récupérer des données boursières.
-                prix_actuel = round(float(ticker.history(period="1d")["Close"].iloc[-1]), 2) #Télécharge le dernier prix de clôture de cette action, prends la dernière valeur, convertis-la en float et arrondis-la à deux chiffres.”
-                prix_moyen_achat = infos["prix_achat_total"] / infos["quantite"]
-                rendement = ((prix_actuel - prix_moyen_achat) / prix_moyen_achat) * 100
-                couleur = "green" if rendement >= 0 else "red"
-            except Exception as e:
-                print(f"Erreur chargement {symbole}: {e}")
+            
+            df = None
+            prix_actuel = 0.0
+
+            if isinstance(infos.get("data"), pd.DataFrame):
+                df= infos["data"]
+
+            if df is None:
+                try:
+                    df = yf.download(symbole, start = "2024-01-01", end = date.today(), interval = "1d")
+                    if not df.empty:
+                        df["Close"] = df["Close"].astype(float)
+                except:
+                    df = None
+
+            if df is not None and "Close" in df:
+                serie = df["Close"]
+
+                if t >= len(serie):
+                    t_sim = len(serie) - 1
+                else:
+                    t_sim = t
+
+                prix_actuel = float(serie.iloc[t_sim])
+            else:
                 prix_actuel = 0.0
-                rendement = 0.0
-                couleur = "gray"
+
+            prix_moyen_achat = infos["prix_achat_total"] / infos["quantite"]
+            rendement = ((prix_actuel - prix_moyen_achat) / prix_moyen_achat) * 100
+            couleur = "green" if rendement >= 0 else "red"
 
             ctk.CTkLabel(self, text=symbole, font=("Arial", 18)).grid(row=row, column=1, pady=5)
             ctk.CTkLabel(self, text=f"{prix_actuel:.2f}", font=("Arial", 18)).grid(row=row, column=2, pady=5)

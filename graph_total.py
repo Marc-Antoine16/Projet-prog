@@ -19,7 +19,6 @@ class GraphTotal(ctk.CTkFrame):
         self.master = master
         self.data_x = []  # timestamps
         self.data_y = []  # rendements
-        self.current_period = "ALL"  # "ALL", "1J", "1S", "1M"
 
         # Cache pour les DataFrames yfinance
         self.df_cache = {}
@@ -60,18 +59,6 @@ class GraphTotal(ctk.CTkFrame):
         btn_retour = ctk.CTkButton(self,text="← Retour",fg_color="transparent",hover_color="green",font=("Arial", 20),command=self.retour_accueil)
         btn_retour.grid(row=0, column=0, padx=10, pady=10, sticky="w")
 
-        # Boutons de période
-        frame_btn = ctk.CTkFrame(self, fg_color="transparent")
-        frame_btn.grid(row=0, column=1, padx=10, pady=10, sticky="e")
-        frame_btn.grid_columnconfigure((0, 1, 2, 3), weight=1)
-
-        ctk.CTkButton(frame_btn,text="1J",fg_color="transparent",hover_color="gray30",command=lambda: self.change_period("1J")).grid(row=0, column=0, padx=5)
-
-        ctk.CTkButton(frame_btn,text="1S",fg_color="transparent",hover_color="gray30",command=lambda: self.change_period("1S")).grid(row=0, column=1, padx=5)
-
-        ctk.CTkButton(frame_btn,text="1M",fg_color="transparent",hover_color="gray30",command=lambda: self.change_period("1M")).grid(row=0, column=2, padx=5)
-
-        ctk.CTkButton(frame_btn, text="TOUT", fg_color="transparent", hover_color="gray30", command=lambda: self.change_period("ALL")).grid(row=0, column=3, padx=5)
 
     def load_history(self):
         """Charge l'historique du rendement total depuis le JSON, si dispo."""
@@ -143,7 +130,7 @@ class GraphTotal(ctk.CTkFrame):
         if not comptes:
             return 0.0
 
-        t = int(getattr(self.master, "temps_global", 0))
+        t = int(getattr(self.master, "jour_global", 0))
 
         total_investi = 0.0
         total_valeur = 0.0
@@ -196,42 +183,31 @@ class GraphTotal(ctk.CTkFrame):
         self.data_y.append(rendement)
         self.save_point(timestamp, rendement)
 
-        self.redraw_for_period()
+        MAX_POINTS = 10
+        if len(self.data_x) > MAX_POINTS:
+            x_vals = self.data_x[-MAX_POINTS:]
+            y_vals = self.data_y[-MAX_POINTS:]
+        else:
+            x_vals = self.data_x
+            y_vals = self.data_y
+
+        self.dessiner_graph(x_vals, y_vals)
+
+        if hasattr(self.master, "jour_global"):
+            max_len = 999999
+            for compte in self.charger_comptes():
+                for sym, info in compte.get("actions", {}).items():
+                    df = self.get_df_symbole(sym)
+                    if df is not None:
+                        max_len = min(max_len, len(df["Close"]))
+            
+            if self.master.jour_global < max_len -1:
+                self.master.jour_global+=1
+
 
         # Replanifie l'update
         self.after(self.UPDATE_INTERVAL, self.update_graph)
 
-    def change_period(self, period):
-        """Change la période affichée (1J, 1S, 1M, ALL) et redessine."""
-
-        self.current_period = period
-        self.redraw_for_period()
-
-    def get_filtered_data(self):
-        """Retourne les x/y filtrés selon la période actuelle."""
-
-        if not self.data_x:
-            return [], []
-
-        df = pd.DataFrame({"x": pd.to_datetime(self.data_x), "y": self.data_y})
-
-        if self.current_period == "1J":
-            cutoff = df["x"].max() - pd.Timedelta(days=1)
-            df = df[df["x"] >= cutoff]
-        elif self.current_period == "1S":
-            cutoff = df["x"].max() - pd.Timedelta(days=7)
-            df = df[df["x"] >= cutoff]
-        elif self.current_period == "1M":
-            cutoff = df["x"].max() - pd.Timedelta(days=30)
-            df = df[df["x"] >= cutoff]
-
-        return list(df["x"]), list(df["y"])
-
-    def redraw_for_period(self):
-        """Redessine le graphique en fonction de la période choisie."""
-
-        x_vals, y_vals = self.get_filtered_data()
-        self.dessiner_graph(x_vals, y_vals)
 
     def dessiner_graph(self, x_vals, y_vals):
         self.ax.clear()
