@@ -48,7 +48,7 @@ class Compte(ctk.CTkFrame):
             ctk.CTkLabel(self, text=f"{prix_actuel:.2f} $", font=("Arial", 15)).grid(row=i, column=3, padx=10, pady=5)
             ctk.CTkLabel(self, text=f"{pourcentage:+.2f} %", font=("Arial", 15), text_color=couleur).grid(row=i, column=4, padx=10, pady=5)
 
-            bouton_vendre = ctk.CTkButton(self, text="Vendre", fg_color="transparent", hover_color="red", font=("Arial", 15), command=lambda a=nom: self.vendre_action(a))
+            bouton_vendre = ctk.CTkButton(self, text="Vendre", fg_color="transparent", hover_color="red", font=("Arial", 15), command=lambda a=nom : self.vendre_action(a,))
             bouton_vendre.grid(row=i, column=5, padx=0, pady=5)
 
             i += 1
@@ -67,7 +67,7 @@ class Compte(ctk.CTkFrame):
                 if (col in (3, 4) and row >= 2) or (row == 0 and col in (4, 5)):
                     widget.destroy()
 
-            i = 2
+            self.i = 2
             for nom, info in self.action.items():
                 prix_achat = float(info["prix_achat"])
 
@@ -81,13 +81,13 @@ class Compte(ctk.CTkFrame):
                 couleur = "green" if pourcentage >= 0 else "red"
                 quantite = info["quantite"]
 
-                ctk.CTkLabel(self, text=nom, font=("Arial", 20, "bold")).grid(row=i, column=0, padx=10, pady=5)
-                ctk.CTkLabel(self, text=f"{quantite}", font=("Arial", 15)).grid(row=i, column=1, padx=10, pady=5)
-                ctk.CTkLabel(self, text=f"{prix_achat:.2f} $", font=("Arial", 15)).grid(row=i, column=2, padx=10, pady=5)
-                ctk.CTkLabel(self, text=f"{prix_actuel:.2f} $", font=("Arial", 15)).grid(row=i, column=3, padx=10, pady=5)
-                ctk.CTkLabel(self, text=f"{pourcentage:+.2f} %", font=("Arial", 15), text_color=couleur).grid(row=i, column=4, padx=10, pady=5)
+                ctk.CTkLabel(self, text=nom, font=("Arial", 20, "bold")).grid(row=self.i, column=0, padx=10, pady=5)
+                ctk.CTkLabel(self, text=f"{quantite}", font=("Arial", 15)).grid(row=self.i, column=1, padx=10, pady=5)
+                ctk.CTkLabel(self, text=f"{prix_achat:.2f} $", font=("Arial", 15)).grid(row=self.i, column=2, padx=10, pady=5)
+                ctk.CTkLabel(self, text=f"{prix_actuel:.2f} $", font=("Arial", 15)).grid(row=self.i, column=3, padx=10, pady=5)
+                ctk.CTkLabel(self, text=f"{pourcentage:+.2f} %", font=("Arial", 15), text_color=couleur).grid(row=self.i, column=4, padx=10, pady=5)
 
-                i += 1
+                self.i += 1
             
             if len(self.stocks) > 0:
                 premier_stock = next(iter(self.stocks))
@@ -124,6 +124,11 @@ class Compte(ctk.CTkFrame):
             row = info.get("row", 0)
             if row >= 2:
                 widget.destroy()
+
+        self.message_label = ctk.CTkLabel(self, text=f"Action de {action} \n à un prix de: {round(prix_actuel,2)}",
+                                            font=("Arial", 20))
+        self.message_label.grid(row=self.i, column=0)
+        self.after(4000, self.message_label.destroy)
 
         i = 2
         for nom, info in self.action.items():
