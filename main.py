@@ -26,7 +26,7 @@ class MainApp(ctk.CTk):
         }
         self.protocol("WM_DELETE_WINDOW", self.quit)
         self.update_menu(self.stocks, 1, None)
-        self.show_watchlist()
+        self.show_login()
 
     def update_menu(self, stocks, temps, compte):
         self.menu = MenuBar(master=self, stocks=stocks, temps=temps, compte=compte)
