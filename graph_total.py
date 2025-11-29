@@ -5,7 +5,6 @@ import yfinance as yf
 import json
 import os
 from datetime import datetime
-import pandas as pd
 
 
 class GraphTotal(ctk.CTkFrame):
@@ -23,7 +22,7 @@ class GraphTotal(ctk.CTkFrame):
         # Cache pour les DataFrames yfinance
         self.df_cache = {}
 
-        self.load_history()
+        self.load_history() # charge l'historique existant
         self.create_widgets()
         self.update_graph()  # lance la mise à jour en boucle
 
@@ -32,28 +31,29 @@ class GraphTotal(ctk.CTkFrame):
         self.grid(row=0, column=0, sticky="nsew")
 
         # Configuration de la grille
-        self.grid_rowconfigure(0, weight=0)   # ligne boutons
-        self.grid_rowconfigure(1, weight=1)   # ligne graph
+        self.grid_rowconfigure(0, weight=0) 
+        self.grid_rowconfigure(1, weight=1)   
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
 
-        self.fig, self.ax = plt.subplots(figsize=(9, 5))
-        self.fig.patch.set_facecolor("black")
-        self.ax.set_facecolor("black")
+        self.fig, self.ax = plt.subplots(figsize=(9, 5)) # taille de la figure
+        self.fig.patch.set_facecolor("black") # fond noir
+        self.ax.set_facecolor("black") # fond noir
 
         for spine in self.ax.spines.values():
-            spine.set_color("white")
+            spine.set_color("white") # couleur blanche pour les axes
 
-        self.ax.tick_params(axis='x', colors='white')
-        self.ax.tick_params(axis='y', colors='white')
-        self.ax.title.set_color('white')
-        self.ax.yaxis.label.set_color('white')
+        self.ax.tick_params(axis='x', colors='white') # couleur blanche pour les ticks x
+        self.ax.tick_params(axis='y', colors='white') # couleur blanche pour les ticks y
+        self.ax.title.set_color('white') # couleur blanche pour le titre
+        self.ax.yaxis.label.set_color('white') # couleur blanche pour le label y
+
 
         self.ax.set_title("Rendement total du portefeuille")
         self.ax.set_ylabel("Rendement (%)")
 
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
-        self.canvas.get_tk_widget().grid(row=1, column=0, columnspan=2,sticky="nsew", pady=20)
+        self.canvas.get_tk_widget().grid(row=1, column=0, columnspan=2,sticky="nsew", pady=20) # placement du canvas qui sert à afficher le graphique
 
         # Bouton retour
         btn_retour = ctk.CTkButton(self,text="← Retour",fg_color="transparent",hover_color="green",font=("Arial", 20),command=self.retour_accueil)
@@ -62,17 +62,17 @@ class GraphTotal(ctk.CTkFrame):
 
     def load_history(self):
         """Charge l'historique du rendement total depuis le JSON, si dispo."""
-        if not os.path.exists(self.HISTORY_FILE):
+        if not os.path.exists(self.HISTORY_FILE): # si le fichier n'existe pas, on ne fait rien
             return
 
         try:
             with open(self.HISTORY_FILE, "r") as f:
-                data = json.load(f)
+                data = json.load(f) # charge les données
         except (json.JSONDecodeError, FileNotFoundError):
             return
 
-        self.data_x = [item["timestamp"] for item in data]
-        self.data_y = [item["rendement"] for item in data]
+        self.data_x = [item["timestamp"] for item in data] # extrait les timestamps
+        self.data_y = [item["rendement"] for item in data] # extrait les rendements
 
     def save_point(self, timestamp, rendement):
         """Ajoute un point de rendement dans le fichier d'historique."""
@@ -84,7 +84,7 @@ class GraphTotal(ctk.CTkFrame):
             except json.JSONDecodeError:
                 historique = []
 
-        historique.append({"timestamp": timestamp, "rendement": rendement})
+        historique.append({"timestamp": timestamp, "rendement": rendement}) # ajoute un point à l'historique
 
         with open(self.HISTORY_FILE, "w") as f:
             json.dump(historique, f, indent=4)
@@ -98,7 +98,7 @@ class GraphTotal(ctk.CTkFrame):
             with open("comptes.json", "r") as f:
                 data = json.load(f)
                 if isinstance(data, list):
-                    return data
+                    return data # retourne la liste des comptes
                 return []
         except json.JSONDecodeError:
             return []
@@ -111,7 +111,7 @@ class GraphTotal(ctk.CTkFrame):
         try:
             df = yf.download(symbole, start="2024-01-01", interval="1d", progress=False)
             if df.empty or "Close" not in df:
-                print(f"[ATTENTION] Aucune donnée valide pour {symbole}")
+                print(f"Aucune donnée valide pour {symbole}")
                 self.df_cache[symbole] = None
                 return None
 
@@ -120,25 +120,25 @@ class GraphTotal(ctk.CTkFrame):
             return df
 
         except Exception as e:
-            print(f"[ERREUR] Téléchargement {symbole} : {e}")
+            print(f"Erreur de téléchargement {symbole} : {e}")
             self.df_cache[symbole] = None
             return None
 
     def calcul_rendement_total(self):
 
-        comptes = self.charger_comptes()
+        comptes = self.charger_comptes() # charge les comptes
         if not comptes:
             return 0.0
 
-        t = int(getattr(self.master, "jour_global", 0))
+        t = int(getattr(self.master, "jour_global", 0)) # jour global pour la simulation
 
         total_investi = 0.0
         total_valeur = 0.0
 
         for compte in comptes:
-            actions = compte.get("actions", {})
+            actions = compte.get("actions", {}) # dictionnaire des actions
 
-            for symbole, info in actions.items():
+            for symbole, info in actions.items(): 
                 quantite = info.get("quantite", 0)
                 prix_achat = float(info.get("prix_achat", 0))
 
@@ -176,14 +176,14 @@ class GraphTotal(ctk.CTkFrame):
         if not self.winfo_exists():
             return
 
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        rendement = self.calcul_rendement_total()
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S") # timestamp actuel
+        rendement = self.calcul_rendement_total() # calcul du rendement total
 
-        self.data_x.append(timestamp)
+        self.data_x.append(timestamp) 
         self.data_y.append(rendement)
         self.save_point(timestamp, rendement)
 
-        MAX_POINTS = 10
+        MAX_POINTS = 10 # nombre maximum de points à afficher
         if len(self.data_x) > MAX_POINTS:
             x_vals = self.data_x[-MAX_POINTS:]
             y_vals = self.data_y[-MAX_POINTS:]
@@ -191,10 +191,11 @@ class GraphTotal(ctk.CTkFrame):
             x_vals = self.data_x
             y_vals = self.data_y
 
-        self.dessiner_graph(x_vals, y_vals)
-
-        if hasattr(self.master, "jour_global"):
-            max_len = 999999
+        self.dessiner_graph(x_vals, y_vals) # dessine le graphique
+        
+        # Mise à jour du jour global pour la simulation
+        if hasattr(self.master, "jour_global"): 
+            max_len = 999999 
             for compte in self.charger_comptes():
                 for sym, info in compte.get("actions", {}).items():
                     df = self.get_df_symbole(sym)

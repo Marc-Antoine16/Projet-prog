@@ -60,8 +60,8 @@ class Graph(ctk.CTkFrame):
 
 
     def afficher_periode(self, periode):
-        data = self.stocks[self.nom]
-        if len(data) < 2:
+        data = self.stocks[self.nom] #data est un DataFrame pandas avec l'historique des prix de l'action
+        if len(data) < 2: #si pas assez de données pour tracer un graphique
             return
 
         if periode == "1M":
@@ -82,8 +82,9 @@ class Graph(ctk.CTkFrame):
         self.ax.set_facecolor("black")
         for spine in self.ax.spines.values():
             spine.set_color("white")
-        self.ax.tick_params(axis='x', colors='white')
-        self.ax.tick_params(axis='y', colors='white')
+
+        self.ax.tick_params(axis='x', colors='white') #couleur des ticks
+        self.ax.tick_params(axis='y', colors='white') #couleur des ticks
         self.ax.xaxis.label.set_color('white')
         self.ax.yaxis.label.set_color('white')
         self.ax.title.set_color('white')

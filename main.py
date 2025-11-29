@@ -17,8 +17,8 @@ class MainApp(ctk.CTk):
 
         self.freeze_date = False
 
-        self.protocol("WM_DELETE_WINDOW", self.quit)
-        self.show_accueil()
+        self.protocol("WM_DELETE_WINDOW", self.quit) #ferme l'appli
+        self.show_accueil() 
 
     def show_accueil(self):
         self.current_page = Accueil(master=self)

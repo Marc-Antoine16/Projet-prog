@@ -12,9 +12,9 @@ class Info(ctk.CTkFrame):
         self.create_widgets()
 
     def create_widgets(self):
-        self.grid(row=0, column=0, padx=50, pady=50, sticky="nsew")
+        self.grid(row=0, column=0, padx=50, pady=50, sticky="nsew") #padx et pady: espace entre le widget et les bords de la fenêtre
 
-        self.master.grid_rowconfigure(0, weight= 1)
+        self.master.grid_rowconfigure(0, weight= 1) 
         self.master.grid_columnconfigure(0, weight= 1)
 
         self.titre_label = ctk.CTkLabel(self, text="Statistiques", font=("Arial", 30, "bold"))

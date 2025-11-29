@@ -16,7 +16,8 @@ class Accueil(ctk.CTkFrame):
         # Cache pour les DataFrames de prix (évite de télécharger 1000 fois)
         self.df_cache = {}
 
-        self.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+        self.grid(row=0, column=0, padx=20, pady=20, sticky="nsew") #padx et pady: espace entre le widget et les bords de la fenêtre
+
         self.create_widgets()
 
     def create_widgets(self):
@@ -67,17 +68,17 @@ class Accueil(ctk.CTkFrame):
 
     def get_df_symbole(self, symbole):
         """Retourne le DataFrame de prix pour un symbole (avec cache)."""
-        if symbole in self.df_cache:
-            return self.df_cache[symbole]
+        if symbole in self.df_cache: # Vérifie si les données sont déjà en cache
+            return self.df_cache[symbole] 
 
         try:
-            df = yf.download(symbole, start="2024-01-01", end=date.today(), interval="1d", progress=False)
+            df = yf.download(symbole, start="2024-01-01", end=date.today(), interval="1d", progress=False) # Télécharge les données
             if df.empty or "Close" not in df:
-                print(f"Aucune donnée valide pour {symbole}")
+                print(f"Aucune donnée valide pour {symbole}") 
                 self.df_cache[symbole] = None
                 return None
 
-            df["Close"] = df["Close"].astype(float)
+            df["Close"] = df["Close"].astype(float) # Assure que les prix de clôture sont en float
             self.df_cache[symbole] = df
             return df
 
@@ -99,7 +100,7 @@ class Accueil(ctk.CTkFrame):
             for i, compte in enumerate(comptes_afficher):
                 nom = compte.get("nom", "Inconnu")
                 montant = compte.get("montant", 0)
-                bouton_compte = ctk.CTkButton(self,text=f"{nom} — {montant:.2f} $",font=("Arial", 20),command=lambda c=compte: self.ouvrir_infoCompte(c))
+                bouton_compte = ctk.CTkButton(self,text=f"{nom} — {montant:.2f} $",font=("Arial", 20),command=lambda c=compte: self.ouvrir_infoCompte(c)) # Utilise une lambda pour capturer la variable compte
                 bouton_compte.grid(row=5 + i, column=3, pady=(10, 10))
             return
 
@@ -128,7 +129,7 @@ class Accueil(ctk.CTkFrame):
         total = 0.0
         comptes = self.charger_comptes()
 
-        t = int(getattr(self.master, "temps_global", 0))
+        t = int(getattr(self.master, "temps_global", 0)) # Temps global pour l'évolution des prix
 
         for compte in comptes:
             # Argent liquide
@@ -143,17 +144,17 @@ class Accueil(ctk.CTkFrame):
                 if quantite <= 0 or prix_achat <= 0:
                     continue
 
-                df = self.get_df_symbole(symbole)
+                df = self.get_df_symbole(symbole) # Récupère le DataFrame avec cache
                 if df is None:
-                    # fallback : utilise le prix d'achat si pas de données
+                    # utilise le prix d'achat si pas de données
                     valeur = prix_achat * quantite
                 else:
                     serie = df["Close"]
-                    if len(serie) == 0:
+                    if len(serie) == 0: 
                         valeur = prix_achat * quantite
                     else:
                         idx = t
-                        if idx >= len(serie):
+                        if idx >= len(serie): 
                             idx = len(serie) - 1
                         prix_actuel = float(serie.iloc[idx])
                         valeur = prix_actuel * quantite
@@ -173,14 +174,13 @@ class Accueil(ctk.CTkFrame):
         watchlist_data = {}
         from datetime import date as dt_date
         import yfinance as yf
-        import pandas as pd
 
         for ticker in compte_data.get("watchlist", []):
             try:
                 df = yf.download(ticker, start="2024-01-01", end=dt_date.today(), interval="1d", progress=False)
                 if not df.empty:
-                    df["Close"] = df["Close"].astype(float)
-                    watchlist_data[ticker] = df
+                    df["Close"] = df["Close"].astype(float) # Assure que les prix de clôture sont en float
+                    watchlist_data[ticker] = df # Stocke le DataFrame dans la watchlist
             except Exception as e:
                 print(f"[ERREUR] lors du chargement du ticker {ticker} :", e)
 

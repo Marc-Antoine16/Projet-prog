@@ -46,10 +46,10 @@ class TitreDetenues(ctk.CTkFrame):
         
         titres={}
         for compte in comptes:
-            actions= compte.get("actions", {})
+            actions= compte.get("actions", {}) # Récupère les actions détenues dans le compte
             for symbole, data in actions.items():
-                prix_achat=data.get("prix_achat", 0)
-                quantite=data.get("quantite", 0)
+                prix_achat=data.get("prix_achat", 0) # Prix d'achat de l'action
+                quantite=data.get("quantite", 0) # Quantité d'actions détenues
                 if quantite <=0 or prix_achat <=0:
                     continue
                 # Si l’action existe déjà (détenue dans plusieurs comptes)
@@ -68,19 +68,20 @@ class TitreDetenues(ctk.CTkFrame):
         for j, h in enumerate(headers):
             ctk.CTkLabel(self, text=h, font=("Arial", 20, "bold")).grid(row=2, column=j+1, padx=10, pady=10)
         
-        t = getattr(self.master, "temps_global", 0)
+        t = getattr(self.master, "temps_global", 0) # Récupère le temps global simulé
 
         
-        row=3
+        row=3 # Ligne de départ pour les titres
+
         for symbole, infos in titres.items():
             
             df = None
             prix_actuel = 0.0
 
-            if isinstance(infos.get("data"), pd.DataFrame):
+            if isinstance(infos.get("data"), pd.DataFrame): #Vérifie si les données historiques sont déjà chargées
                 df= infos["data"]
 
-            if df is None:
+            if df is None: # Téléchargement des données historiques si non disponibles
                 try:
                     df = yf.download(symbole, start = "2024-01-01", end = date.today(), interval = "1d")
                     if not df.empty:
@@ -88,7 +89,7 @@ class TitreDetenues(ctk.CTkFrame):
                 except:
                     df = None
 
-            if df is not None and "Close" in df:
+            if df is not None and "Close" in df: # Vérifie si les données sont valides
                 serie = df["Close"]
 
                 if t >= len(serie):

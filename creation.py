@@ -38,8 +38,8 @@ class Creation(ctk.CTkFrame):
         self.entre_montant.grid(row=3,column=3, pady=(10,10))
 
     def creer_compte(self):
-        nom=self.entre_nom.get()
-        montant= self.entre_montant.get()
+        nom=self.entre_nom.get() # Récupère le nom entré par l'utilisateur
+        montant= self.entre_montant.get() # Récupère le montant entré par l'utilisateur
 
         try:
             montant = float(montant)
@@ -48,17 +48,18 @@ class Creation(ctk.CTkFrame):
             self.erreurMontant.grid(row=1 , column= 1, pady=(10,10))
             return
         
-        compte={"nom" : nom , "montant": montant, "actions":{}, "watchlist": [] }
+        compte={"nom" : nom , "montant": montant, "actions":{}, "watchlist": [] } # Création d'un dictionnaire représentant le compte
+
         if os.path.exists("comptes.json"):
             with open("comptes.json", "r") as f:
                 data = json.load(f)
         else:
             data=[]
 
-        data.append(compte)
+        data.append(compte) # Ajout du nouveau compte à la liste des comptes
 
         with open("comptes.json", "w") as f:
-            json.dump(data,f,indent=4)
+            json.dump(data,f,indent=4) # Sauvegarde de la liste mise à jour dans le fichier JSON
 
         self.clear_main_frame()
         self.show_accueil()

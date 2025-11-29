@@ -1,35 +1,26 @@
 [
     {
-        "nom": "gfds",
-        "montant": 313.5999999999991,
-        "actions": {
-            "AFL": {
-                "prix_achat": 80.19,
-                "quantite": 8
-            },
-            "ALB": {
-                "prix_achat": 142.13,
-                "quantite": 2
-            },
-            "GOOGL": {
-                "prix_achat": 137.22,
-                "quantite": 4
-            },
-            "AEE": {
-                "prix_achat": 70.0,
-                "quantite": 2
-            },
-            "AMD": {
-                "prix_achat": 138.58,
-                "quantite": 3
-            }
-        },
+        "nom": "Test1",
+        "montant": 999.6302299499512,
+        "actions": {},
         "watchlist": [
-            "AFL",
-            "ALB",
-            "GOOGL",
-            "AEE",
-            "AMD"
+            "AES"
+        ]
+    },
+    {
+        "nom": "Test 2 ",
+        "montant": 9996.396100769043,
+        "actions": {},
+        "watchlist": [
+            "ALB"
+        ]
+    },
+    {
+        "nom": "Test 3 ",
+        "montant": 999999.6868438721,
+        "actions": {},
+        "watchlist": [
+            "AEE"
         ]
     }
 ]

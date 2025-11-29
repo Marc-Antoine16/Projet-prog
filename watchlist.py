@@ -22,7 +22,7 @@ class Watchlist(ctk.CTkFrame):
         else:
             self.stocks = {}
 
-        if options is None: #Chargement de la liste des symboles S&P500
+        if options is None: #Chargement de la liste des symboles S&P500 si non fournie
                 try:
                     data = pd.read_csv("https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv")
                     self.options = data["Symbol"].dropna().tolist()
