@@ -1,5 +1,7 @@
 import customtkinter as ctk
 import json
+import pandas as pd
+import yfinance as yf
 
 class AdminPage(ctk.CTkFrame):
     def __init__(self, master=None, stocks = None, temps = None, compte = None, users = None, watchlist = None):
@@ -8,9 +10,10 @@ class AdminPage(ctk.CTkFrame):
         self.users = users
         self.stocks = stocks
         self.temps = temps
-        self.compte = compte
+        self.compte = compte 
         self.watchlist = watchlist
-
+        self.options = pd.read_csv("https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv")["Symbol"].tolist()
+        self.options_with_placeholder = ["Ajouter action"] + self.options
         self.create_widgets()
 
     def create_widgets(self):
@@ -136,6 +139,9 @@ class AdminPage(ctk.CTkFrame):
         self.watchlist_message = ctk.CTkLabel(self.content, text="", font=("Arial", 16))
         self.watchlist_message.pack(pady=5)
 
+        self.dropdown = ctk.CTkOptionMenu(self.content,values=self.options_with_placeholder, command=self.option_changed)
+        self.dropdown.set("Ajouter action")
+        self.dropdown.pack(pady=(10,10))
     
 
         # Liste actuelle
@@ -148,11 +154,7 @@ class AdminPage(ctk.CTkFrame):
                 ctk.CTkLabel(frame, text=stock, font=("Arial", 18)).pack(side="left", padx=10)
                 ctk.CTkButton(frame, text="Supprimer", fg_color="red", command=lambda s=stock: self.remove_from_watchlist(s)).pack(side="right", padx=10)
 
-        # Ajouter une action
-        ctk.CTkLabel(self.content, text="Ajouter une action :", font=("Arial", 16)).pack(pady=10)
-        self.new_stock_entry = ctk.CTkEntry(self.content, placeholder_text="Symbole ex: AAPL")
-        self.new_stock_entry.pack(pady=5)
-        ctk.CTkButton(self.content, text="Ajouter", command=self.add_to_watchlist).pack(pady=5)
+
 
     def update_password(self):
 
@@ -223,7 +225,35 @@ class AdminPage(ctk.CTkFrame):
         self.show_users_section()
 
     def show_actions(self):
-        print("Watchlist")
+        if not hasattr(self, "current_user"):
+            self.user_info.configure(text=" Aucun utilisateur sélectionné.", text_color="red")
+            return
+
+        self.clear_content()
+    
+        title = ctk.CTkLabel(self.content, text=f"Actions détenues par {self.current_user.username}", font=("Arial", 26, "bold"))
+        title.pack(pady=20)
+
+        self.watchlist_message = ctk.CTkLabel(self.content, text="", font=("Arial", 16))
+        self.watchlist_message.pack(pady=5)
+
+        if not self.current_user.stocks_owned:
+            ctk.CTkLabel(self.content,text="Aucune action détenue actuellement.",text_color="gray").pack(pady=10)
+            return
+
+        # Sinon, afficher chaque action détenue
+        for symbol, data in self.current_user.stocks_owned.items():
+            quantite = data["quantite"]
+            prix_achat = data["prix_achat"]
+
+            frame = ctk.CTkFrame(self.content, fg_color="#3A3A3A")
+            frame.pack(pady=5, fill="x", padx=30)
+
+            ctk.CTkLabel(frame, text=symbol, font=("Arial", 18, "bold")).pack(side="left", padx=10)
+
+            info_text = f"Quantité : {quantite} | Prix d’achat moyen : {prix_achat:.2f} $"
+            ctk.CTkLabel(frame, text=info_text, font=("Arial", 16)).pack(side="left", padx=10)
+
 
     def clear_main_frame(self):
         if hasattr(self, "boucle_id"):
@@ -280,8 +310,9 @@ class AdminPage(ctk.CTkFrame):
         # Rafraîchit l'affichage
         self.clear_content()
         self.show_watchlist()
+
     def option_changed(self, value): #ajout nouveau stock, créer widgets sans reconstruire la page pour que les labels de rendement deja existant reste visible et continue de se mettre a jour
-        if value == "Ajouter...":
+        if value == "Ajouter action":
             return
         
         if value in self.stocks:  # déjà dans la watchlist
@@ -294,6 +325,9 @@ class AdminPage(ctk.CTkFrame):
         except Exception as e:
             print(f"Erreur téléchargement du stock {value} :", e)
             return
-
         
-        self.user.add_to_watchlist(value)
+        self.current_user.add_to_watchlist(value)
+        
+        # Rafraîchit l'affichage
+        self.clear_content()
+        self.show_watchlist()

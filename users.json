@@ -10,9 +10,26 @@
     {
         "username": "gab",
         "password": "1234",
-        "balance": 1000,
+        "balance": 1385.2958221435547,
         "role": "user",
-        "stocks_owned": {},
+        "stocks_owned": {
+            "ABBV": {
+                "prix_achat": 150.7258823529412,
+                "quantite": 16
+            },
+            "AKAM": {
+                "prix_achat": 116.88,
+                "quantite": 4
+            },
+            "AXP": {
+                "prix_achat": 185.43,
+                "quantite": 7
+            },
+            "GOOGL": {
+                "prix_achat": 139.98,
+                "quantite": 7
+            }
+        },
         "watchlist": [
             "AKAM",
             "ABBV",
@@ -32,7 +49,10 @@
             }
         },
         "watchlist": [
-            "GOOGL"
+            "GOOGL",
+            "ABBV",
+            "ABNB",
+            "AKAM"
         ]
     }
 ]
