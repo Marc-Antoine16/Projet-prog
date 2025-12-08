@@ -19,7 +19,7 @@ class Acheter(ctk.CTkFrame) :
 
     def create_widgets(self):
 
-        # Création de la grille 12 × 12 
+        # Configuration de la grille
         for i in range(12):
             self.grid_rowconfigure(i, weight=1)
             self.grid_columnconfigure(i, weight=1)
@@ -37,7 +37,7 @@ class Acheter(ctk.CTkFrame) :
         current_price = round(float(self.df["Close"].iloc[self.temps]), 2)
         yesterday = float(self.df["Close"].iloc[self.temps - 1])
         change = current_price - yesterday
-        pct = (change / yesterday) * 100 if yesterday != 0 else 0
+        pct = (change / yesterday) * 100 if yesterday != 0 else 0 
 
         couleur = "green" if change >= 0 else "red"
         signe = "+" if change >= 0 else "-"
@@ -91,16 +91,16 @@ class Acheter(ctk.CTkFrame) :
         self.message_label = ctk.CTkLabel(self, text="", text_color="red", font=("Arial", 18))
         self.message_label.grid(row=10, column=0, columnspan=10)
 
-
+    # Mise à jour du coût total et du solde restant
     def update_cost(self):
-            txt = self.quantite_entry.get().strip()
-            if not txt.isdigit():
-                self.cout_label.configure(text="Coût total : -")
+            txt = self.quantite_entry.get().strip() # Récupère le texte entré
+            if not txt.isdigit(): # Vérifie si c'est un entier positif
+                self.cout_label.configure(text="Coût total : -") 
                 self.restant_label.configure(text="")
                 return
 
             q = int(txt)
-            price = round(float(self.df["Close"].iloc[self.temps]), 2)
+            price = round(float(self.df["Close"].iloc[self.temps]), 2) 
             total = q * price
 
             self.cout_label.configure(text=f"Coût total : {total:.2f} $")
@@ -113,35 +113,37 @@ class Acheter(ctk.CTkFrame) :
                 text_color=couleur
         )
 
-
+    # Nettoyage du frame principal
     def clear_main_frame(self):
         for widget in self.master.winfo_children():
             widget.destroy()
 
- 
+   #  Retour à la watchlist
     def retour(self):
         from watchlist import Watchlist
         self.clear_main_frame()
         Watchlist(master=self.master, stocks=self.stocks,temps=self.temps,compte=self.compte,user=self.user, watchlist= self.watchlist) 
 
-       
+     # Logique d'achat d'une action  
     def acheter_action(self, action):
 
         prix_achat = round(float(self.stocks[action]["Close"].iloc[self.temps - 1]), 2)
         quantite = int(self.quantite_entry.get().strip())
 
+        # Validation de la quantité
         if quantite <= 0:
             self.message_label.configure(text="Quantité invalide.", text_color="red")
             return
 
+        # Initialisation du compte si nécessaire
         if self.compte is None:
             from compte import Compte
-            self.compte = Compte(self.master, self.stocks, self.temps,
-                                action={}, argent=self.user.balance, user=self.user)
+            self.compte = Compte(self.master, self.stocks, self.temps,action={}, argent=self.user.balance, user=self.user)
 
         self.compte.argent = self.user.balance
         cout_total = prix_achat * quantite
 
+        # Vérification des fonds suffisants
         if self.compte.argent < cout_total:
             self.message_label.configure(text="Pas assez de fond pour acheter cette action !", text_color="red")
             return
@@ -150,14 +152,12 @@ class Acheter(ctk.CTkFrame) :
         self.compte.argent -= cout_total
         self.user.balance -= cout_total
 
-        # Mise à jour du compte (self.compte.actions)
+        # Mise à jour du compte
         if action in self.compte.actions:
             ancienne_quantite = self.compte.actions[action]["quantite"]
             ancien_prix = self.compte.actions[action]["prix_achat"]
 
-            nouveau_prix_moyen = (
-                (ancien_prix * ancienne_quantite) + (prix_achat * quantite)
-            ) / (ancienne_quantite + quantite)
+            nouveau_prix_moyen = ((ancien_prix * ancienne_quantite) + (prix_achat * quantite) ) / (ancienne_quantite + quantite)
 
             self.compte.actions[action]["prix_achat"] = nouveau_prix_moyen
             self.compte.actions[action]["quantite"] += quantite
@@ -175,9 +175,7 @@ class Acheter(ctk.CTkFrame) :
             ancienne_quantite = self.user.stocks_owned[action]["quantite"]
             ancien_prix = self.user.stocks_owned[action]["prix_achat"]
 
-            nouveau_prix_moyen = (
-                (ancien_prix * ancienne_quantite) + (prix_achat * quantite)
-            ) / (ancienne_quantite + quantite)
+            nouveau_prix_moyen = ((ancien_prix * ancienne_quantite) + (prix_achat * quantite)) / (ancienne_quantite + quantite)
 
             self.user.stocks_owned[action]["prix_achat"] = nouveau_prix_moyen
             self.user.stocks_owned[action]["quantite"] += quantite

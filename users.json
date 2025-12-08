@@ -13,21 +13,9 @@
         "balance": 1385.2958221435547,
         "role": "user",
         "stocks_owned": {
-            "ABBV": {
-                "prix_achat": 150.7258823529412,
-                "quantite": 16
-            },
-            "AKAM": {
-                "prix_achat": 116.88,
-                "quantite": 4
-            },
-            "AXP": {
-                "prix_achat": 185.43,
-                "quantite": 7
-            },
             "GOOGL": {
-                "prix_achat": 139.98,
-                "quantite": 7
+                "prix_achat": 0,
+                "quantite": 1
             }
         },
         "watchlist": [
@@ -44,8 +32,12 @@
         "role": "user",
         "stocks_owned": {
             "GOOGL": {
-                "prix_achat": 141.46428571428572,
-                "quantite": 6
+                "prix_achat": 141.09321428571428,
+                "quantite": 7
+            },
+            "ABBV": {
+                "prix_achat": 150.72588235294123,
+                "quantite": 5
             }
         },
         "watchlist": [
@@ -53,6 +45,35 @@
             "ABBV",
             "ABNB",
             "AKAM"
+        ]
+    },
+    {
+        "username": "Lt",
+        "password": "ph",
+        "balance": 456.08000000000004,
+        "role": "user",
+        "stocks_owned": {
+            "ABNB": {
+                "prix_achat": 135.98,
+                "quantite": 4
+            },
+            "ABBV": {
+                "prix_achat": 150.7258823529412,
+                "quantite": 4
+            },
+            "GOOGL": {
+                "prix_achat": 139.98,
+                "quantite": 3
+            },
+            "AKAM": {
+                "prix_achat": 116.88,
+                "quantite": 3
+            }
+        },
+        "watchlist": [
+            "ABBV",
+            "ABNB",
+            "ALGN"
         ]
     }
 ]

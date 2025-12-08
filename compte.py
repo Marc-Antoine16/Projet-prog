@@ -123,10 +123,7 @@ class Compte(ctk.CTkFrame):
 
             # Sauvegarde du JSON
             if self.user:
-                self.user.stocks_owned = {
-                    nom: {"prix_achat": info["prix_achat"], "quantite": info["quantite"]}
-                    for nom, info in self.actions.items()
-                }
+                self.user.stocks_owned = {nom: {"prix_achat": info["prix_achat"], "quantite": info["quantite"]}for nom, info in self.actions.items()}
                 self.user.save_to_json()
 
      
@@ -199,9 +196,9 @@ class Compte(ctk.CTkFrame):
         for widget in self.winfo_children():
             widget.destroy()
 
-
+    # Vente d'une action
     def vendre_action(self, action):
-        if action not in self.actions:
+        if action not in self.actions: 
             return
 
         info = self.actions[action]
@@ -261,16 +258,18 @@ class Compte(ctk.CTkFrame):
             pourcentage = round(((prix_actuel - prix_achat) / prix_achat) * 100, 2) if prix_achat != 0 else 0.0
             couleur = "green" if pourcentage >= 0 else "red"
 
+            # Affichage
             ctk.CTkLabel(self, text=nom, font=("Arial", 20, "bold")).grid(row=i, column=0, padx=10, pady=5)
             ctk.CTkLabel(self, text=f"{quantite}", font=("Arial", 15)).grid(row=i, column=1, padx=10, pady=5)
             ctk.CTkLabel(self, text=f"{prix_achat:.2f} $", font=("Arial", 15)).grid(row=i, column=2, padx=10, pady=5)
             ctk.CTkLabel(self, text=f"{prix_actuel:.2f} $", font=("Arial", 15)).grid(row=i, column=3, padx=10, pady=5)
             ctk.CTkLabel(self, text=f"{pourcentage:+.2f} %", font=("Arial", 15),text_color=couleur).grid(row=i, column=4, padx=10, pady=5)
 
+            # Bouton vendre
             bouton_vendre = ctk.CTkButton( self, text="Vendre", fg_color="transparent", hover_color="red", font=("Arial", 15), command=lambda a=nom: self.vendre_action(a))
             bouton_vendre.grid(row=i, column=5, padx=0, pady=5)
 
-            i += 1
+            i += 1 # Incrémente la ligne
 
         self.argent_label.configure(text=f"{self.argent:.2f} $")
 
