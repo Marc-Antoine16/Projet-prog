@@ -60,6 +60,7 @@ class LoginPage(ctk.CTkFrame):
         if username in users and users[username] == password:
             self.message_label.configure(text="Connexion réussie!", text_color="green")
             self.clear_main_frame()
+            self.master.nom = username
             from watchlist import Watchlist
             Watchlist(master=self.master, stocks=self.stocks, temps=0, compte=None) # ouvre la page principale Watchlist
         else:
@@ -75,6 +76,10 @@ class LoginPage(ctk.CTkFrame):
         # Récupère les infos entrées
         username = self.username_entry.get().strip()
         password = self.password_entry.get().strip()
+
+        if len(password) < 5:
+            self.message_label.configure(text="Au moins 5 charactères", text_color="red")
+            return
 
         # Vérifie que les deux champs sont remplis
         if not username or not password:

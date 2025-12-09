@@ -26,6 +26,9 @@ class Watchlist(ctk.CTkFrame):
         self.master.grid_rowconfigure(0, weight= 1)
         self.master.grid_columnconfigure(0, weight= 1)
 
+        self.nom_utilisateur_label = ctk.CTkLabel(self, text=self.master.nom, font=("Arial", 24, "bold"))
+        self.nom_utilisateur_label.grid(row=0, column=6)
+
         self.titre_label = ctk.CTkLabel(self, text="Watchlist", font=("Arial", 30, "bold"))
         self.titre_label.grid(row=0, column=0, pady=(10,10))
 
@@ -60,8 +63,15 @@ class Watchlist(ctk.CTkFrame):
             self.bouton_supprime = ctk.CTkButton(self, text="❎", fg_color="transparent", hover_color="red", font=("Arial", 24), width=60, height=60, command = lambda s = stock: self.supprime_stock(s))
             self.bouton_supprime.grid(row=i, column=10, pady=(10,10))
 
-            self.bouton_achat = ctk.CTkButton(self, text="Acheter", fg_color="transparent", hover_color="green", font=("Arial", 24), width=80, height=60 , command = lambda a = stock: self.acheter_stock(a))
-            self.bouton_achat.grid(row = i, column = 4, pady = (10, 10))
+            if self.compte is None:
+                    from compte import Compte
+                    self.compte = Compte(self.master, self.stocks, self.temps, action={}, argent=1000)
+            
+            prix = round(self.stocks[stock]["Close"].iloc[self.temps - 1].iloc[0], 2)
+            print(prix)
+            if prix < self.compte.argent:
+                self.bouton_achat = ctk.CTkButton(self, text="Acheter", fg_color="transparent", hover_color="green", font=("Arial", 24), width=80, height=60 , command = lambda a = stock: self.acheter_stock(a))
+                self.bouton_achat.grid(row = i, column = 4, pady = (10, 10))
 
             
 
@@ -195,6 +205,7 @@ class Watchlist(ctk.CTkFrame):
         btn_sup = ctk.CTkButton(self, text="❎", fg_color="transparent", hover_color="red",font=("Arial", 24), width=60, height=60, command=lambda s=value: self.supprime_stock(s))
         btn_sup.grid(row=i, column=10, pady=(10,10))
 
+        
         btn_achat = ctk.CTkButton(self, text="Acheter", fg_color="transparent", hover_color="green",font=("Arial", 24), width=80, height=60, command=lambda s=value: self.acheter_stock(s))
         btn_achat.grid(row=i, column=4, pady=(10,10))
 
@@ -259,6 +270,7 @@ class Watchlist(ctk.CTkFrame):
             self.after(4000, self.message_label.destroy)
 
         else:
+
             self.label = ctk.CTkLabel(self, text="Pas assez de fonds pour acheter cette action",
                                     fg_color="dark gray", font=("Arial", 20))
             self.label.grid(row=3, column=3, padx=(20, 20), pady=(20, 20))

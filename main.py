@@ -18,6 +18,7 @@ class MainApp(ctk.CTk):
         self.geometry(APP_GEOMETRY)
         self.title(APP_TITLE)
         self.date = date.today()
+        self.nom = None
         self.stocks = {
             "TSLA" : yf.download("TSLA", start="2024-01-01", end=f"{self.date}", interval="1d"),
             "AAPL" : yf.download("AAPL", start="2024-01-01", end=f"{self.date}", interval="1d"),
